@@ -1333,7 +1333,8 @@ async function checkUi(): Promise<void> {
         // Through `secretsOf` so named instances are covered: the flat cast
         // here contributed no keys for them, and one flat service was enough
         // to satisfy the `length > 0` guard and report green.
-        const keys = secretsOf(config);
+        // Resolved, or a key read from `api_key_file` or `${NAME}` is not checked at all.
+        const keys = secretsOf(resolveSecrets(config));
         return keys.length > 0 && keys.every(k => !body.includes(k));
     });
 }

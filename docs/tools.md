@@ -1103,8 +1103,6 @@ in `failures` rather than here. Jellyfin's and Emby's real logs are plain-text
 files, and Dispatcharr and Profilarr have no log to read, so none of the four
 appears here.
 
-**Unverified live** (Audiobookshelf): the connection test with a key; only the unauthenticated `/status` has been recorded.
-
 ## `get_library`
 
 Each parameter is described in one sentence in the tool list. The detail
@@ -1419,7 +1417,7 @@ never merges, and its `presence` is `unknown`. `library` filters by the
 Audiobookshelf library's name. A failed read is `audiobookshelf` in `degraded`
 and is never offered as why a film or series was not found.
 
-**Unverified live** (Audiobookshelf): the library list and the item pages behind the `book` rows; only the unauthenticated `/status` has been recorded.
+**Unverified live** (Audiobookshelf): an item on the item pages behind the `book` rows; the live library was empty at capture.
 
 ## `get_playback`
 

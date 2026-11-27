@@ -1,0 +1,45 @@
+{
+  "libraries": [
+    {
+      "id": "f22a79d3-eff9-47e9-8471-0a4757d45bc1",
+      "name": "Audiobooks",
+      "folders": [
+        {
+          "id": "4fabc6ec-a120-4f29-8d0c-29d2e09e50ad",
+          "fullPath": "/audiobooks/example",
+          "libraryId": "f22a79d3-eff9-47e9-8471-0a4757d45bc1",
+          "addedAt": 1795580640388
+        }
+      ],
+      "displayOrder": 1,
+      "icon": "audiobookshelf",
+      "mediaType": "book",
+      "provider": "audible.com.au",
+      "settings": {
+        "coverAspectRatio": 1,
+        "disableWatcher": false,
+        "autoScanCronExpression": "0 * * * *",
+        "skipMatchingMediaWithAsin": false,
+        "skipMatchingMediaWithIsbn": false,
+        "audiobooksOnly": false,
+        "epubsAllowScriptedContent": false,
+        "hideSingleBookSeries": false,
+        "onlyShowLaterBooksInContinueSeries": false,
+        "metadataPrecedence": [
+          "folderStructure",
+          "audioMetatags",
+          "nfoFile",
+          "txtFiles",
+          "opfFile",
+          "absMetadata"
+        ],
+        "markAsFinishedPercentComplete": null,
+        "markAsFinishedTimeRemaining": 10
+      },
+      "lastScan": 1795755600253,
+      "lastScanVersion": "2.38.0",
+      "createdAt": 1795419630796,
+      "lastUpdate": 1795755600254
+    }
+  ]
+}

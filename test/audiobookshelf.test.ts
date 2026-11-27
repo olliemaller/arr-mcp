@@ -13,15 +13,17 @@ const config: ConfigByService['audiobookshelf'] = {
     permissions: { safe_write: false, destructive: false }
 };
 
-/** The live 2.38.0 server's unauthenticated `/status`, the one response recorded so far (test/fixtures/discovery). */
-const status = (JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/discovery/audiobookshelf-status.json'), 'utf8')) as { body: string }).body;
+const fixture = (name: string): unknown => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/audiobookshelf', `${name}.json`), 'utf8'));
+/** The live 2.38.0 server's `/status`, captured with the key (it answers the same without one). */
+const status = JSON.stringify(fixture('status'));
 
 type Reply = { status?: number; body: unknown };
 
 /**
- * Routes by path. Everything but `/status` is a constructed answer: no item or
- * library list has been captured yet (docs/writes.md), so these test the
- * paging and the filters, not Audiobookshelf's field names.
+ * Routes by path. `/status` is always the captured answer. The live library
+ * was empty at capture, so tests that need items use constructed answers
+ * (docs/writes.md): they test the paging and the filters, not Audiobookshelf's
+ * field names on an item.
  */
 function server(routes: Record<string, Reply | Reply[]>) {
     const sent: { path: string; auth: string | null }[] = [];
@@ -54,6 +56,15 @@ describe('audiobookshelf', () => {
         const { adapter, sent } = server({ '/api/libraries': LIBRARIES });
         expect(await adapter.testConnection()).toMatchObject({ ok: true, version: '2.38.0' });
         expect(sent.find(s => s.path === '/api/libraries')?.auth).toBe('Bearer abs-key');
+    });
+
+    it('connects and reads the captured library list and its empty page', async () => {
+        const libraries = fixture('libraries') as { libraries: { id: string }[] };
+        const id = libraries.libraries[0]?.id ?? '';
+        const { adapter, sent } = server({ '/api/libraries': { body: libraries }, [`/api/libraries/${id}/items`]: { body: fixture('library-items') } });
+        expect(await adapter.testConnection()).toMatchObject({ ok: true, version: '2.38.0' });
+        expect(await adapter.listLibrary()).toEqual([]);
+        expect(sent.filter(s => s.path.includes('/items')).map(s => s.path)).toEqual([`/api/libraries/${id}/items?limit=200&page=0&minified=1`]);
     });
 
     it('fails the connection test on a refused key, though /status answered', async () => {

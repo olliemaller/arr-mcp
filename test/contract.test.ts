@@ -1303,6 +1303,15 @@ const CONTRACTS: Record<string, ServiceContract> = {
             { path: '/api/v1/books/status', method: 'post', fixture: 'test/fixtures/grimmory/mock-books-status.json', fields: ['bookId', 'readStatus'] },
             { path: '/api/v1/bookdrop/files', fixture: 'test/fixtures/grimmory/mock-bookdrop-files-pending.json', fields: ['content.id', 'content.fileName', 'content.createdAt'] }
         ]
+    },
+    // No OpenAPI spec, a written reference only. Fixtures are a live 2.38.0, read with an API key acting as a non-admin user.
+    // The item page was captured from an empty library, so it has no item to contract the fields listLibrary reads on one.
+    audiobookshelf: {
+        dependencies: [
+            { fixture: 'test/fixtures/audiobookshelf/status.json', fields: ['app', 'serverVersion'] },
+            { fixture: 'test/fixtures/audiobookshelf/libraries.json', fields: ['libraries.id', 'libraries.name', 'libraries.mediaType'] },
+            { fixture: 'test/fixtures/audiobookshelf/library-items.json', fields: ['results', 'total'] }
+        ]
     }
 };
 
