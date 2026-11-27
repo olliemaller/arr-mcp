@@ -57,7 +57,10 @@ const ID_WORDS = new Set([
     // stripped — which is contiguous and long enough to look exactly like a
     // token. A field named *title or *slug is not a credential.
     'title',
-    'slug'
+    'slug',
+    // The Subsonic API's `coverArt` is the id of an image (`ar-<id>_<hash>` on
+    // Navidrome), which getCoverArt takes. Not a credential.
+    'coverart'
 ]);
 
 /** Last word of a key, splitting snake_case, kebab-case and camelCase alike. */

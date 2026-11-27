@@ -14,11 +14,9 @@ const config: ConfigByService['navidrome'] = {
     permissions: { safe_write: false, destructive: false }
 };
 
-/**
- * The one Navidrome response recorded so far: the live 0.64.2 server's answer
- * to a ping with no login (test/fixtures/discovery). The adapter's reads still
- * need a capture with an account; see docs/writes.md.
- */
+const fixture = (name: string): unknown => JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/navidrome', `${name}.json`), 'utf8'));
+
+/** The live 0.64.2 server's answer to a ping with no login (test/fixtures/discovery), for the error cases. */
 const unauthenticated = JSON.parse(
     (JSON.parse(readFileSync(join(import.meta.dirname, 'fixtures/discovery/navidrome-ping.json'), 'utf8')) as { body: string }).body
 ) as { 'subsonic-response': Record<string, unknown> };
@@ -48,9 +46,34 @@ describe('navidrome', () => {
         expect(url.toString()).not.toContain('pa55word');
     });
 
-    it('reads the release from serverVersion', async () => {
-        const { adapter } = server(withResponse({ status: 'ok', error: undefined }));
+    it('reads the release from serverVersion on a signed-in ping', async () => {
+        const { adapter } = server(fixture('ping'));
         expect(await adapter.testConnection()).toMatchObject({ ok: true, version: '0.64.2' });
+    });
+
+    it('reads every artist across the index, as artist rows keyed by the player id', async () => {
+        const { adapter, sent } = server(fixture('artists'));
+        const rows = await adapter.listMusicLibrary();
+        expect(sent[0]?.pathname).toBe('/rest/getArtists');
+        expect(rows).toHaveLength(12);
+        for (const row of rows) {
+            expect(row.kind).toBe('artist');
+            expect(row.title).toMatch(/^<<untrusted:navidrome\.name>>.+<<\/>>$/);
+            expect(row.playback?.itemId).toMatch(/^\w+$/);
+        }
+    });
+
+    it('leaves the MusicBrainz id out when Navidrome sends an empty one, as this library does for every artist', async () => {
+        const rows = await server(fixture('artists')).adapter.listMusicLibrary();
+        expect(rows.every(r => r.ids.mbid === undefined)).toBe(true);
+    });
+
+    it("reads an artist's album titles raw", async () => {
+        const { adapter, sent } = server(fixture('artist'));
+        const titles = await adapter.listArtistAlbumTitles('4NxVR0mOPN6KeIt2HyVgYS');
+        expect(sent[0]?.searchParams.get('id')).toBe('4NxVR0mOPN6KeIt2HyVgYS');
+        expect(titles).toHaveLength(1);
+        expect(titles[0]).not.toContain('<<untrusted');
     });
 
     it('reports a Subsonic error answered with HTTP 200 as a failure', async () => {

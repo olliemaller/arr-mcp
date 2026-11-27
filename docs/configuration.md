@@ -578,6 +578,12 @@ by title, and names the ones Navidrome is missing. arr-mcp cannot start a
 Navidrome scan (that needs an admin account), so the remedy says to start one
 in Navidrome.
 
+The join needs MusicBrainz ids in the files' tags, which is where Navidrome
+reads them from. Turn on Tag Audio Files in Lidarr (Settings → Metadata), retag
+what is already on disk with `fix_metadata` and `id: "lidarr:<artistId>"`, then
+run a full scan in Navidrome. Without the tags no artist joins, and every Lidarr
+artist reads `arr_only`.
+
 Read only and single instance, since presence is measured against one music
 player. Needs Navidrome 0.54.1 or newer, the first release whose artist list
 carries the MusicBrainz id the join uses.

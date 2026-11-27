@@ -1,0 +1,223 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "navidrome",
+    "serverVersion": "0.64.2 (10114574)",
+    "openSubsonic": true,
+    "artists": {
+      "index": [
+        {
+          "name": "#",
+          "artist": [
+            {
+              "id": "4NxVR0mOPN6KeIt2HyVgYS",
+              "name": "21 Savage",
+              "coverArt": "ar-4NxVR0mOPN6KeIt2HyVgYS_e9c8923d24a6316b",
+              "albumCount": 1,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "21 savage",
+              "roles": [
+                "albumartist",
+                "artist",
+                "maincredit"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "D",
+          "artist": [
+            {
+              "id": "0iGN4VgJQgznrH31yskDUc",
+              "name": "DJ Mustard",
+              "coverArt": "ar-0iGN4VgJQgznrH31yskDUc_b2c05c6082534bdb",
+              "albumCount": 2,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "dj mustard",
+              "roles": [
+                "artist",
+                "maincredit",
+                "albumartist"
+              ]
+            },
+            {
+              "id": "4XZGZhC243oN7qRMZMCvJ0",
+              "name": "Don Toliver",
+              "coverArt": "ar-4XZGZhC243oN7qRMZMCvJ0_5d1ec73e192b9a10",
+              "albumCount": 2,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "don toliver",
+              "roles": [
+                "albumartist",
+                "artist",
+                "maincredit"
+              ]
+            },
+            {
+              "id": "2Y09fvZjxV9n5twPmfCTDz",
+              "name": "Drake",
+              "coverArt": "ar-2Y09fvZjxV9n5twPmfCTDz_6ad24b4b91733346",
+              "albumCount": 7,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "drake",
+              "roles": [
+                "maincredit",
+                "albumartist",
+                "artist"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "F",
+          "artist": [
+            {
+              "id": "3u8maeBd5dY0TURgo8Mjxm",
+              "name": "Future",
+              "coverArt": "ar-3u8maeBd5dY0TURgo8Mjxm_5b9831fdbf5b22c1",
+              "albumCount": 8,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "future",
+              "roles": [
+                "albumartist",
+                "artist",
+                "maincredit"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "L",
+          "artist": [
+            {
+              "id": "5jRJ4hQX5YSoGN0xKv7v9t",
+              "name": "Lil Yachty",
+              "coverArt": "ar-5jRJ4hQX5YSoGN0xKv7v9t_ea0d28ccad2b857d",
+              "albumCount": 2,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "lil yachty",
+              "roles": [
+                "albumartist",
+                "artist",
+                "maincredit"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "N",
+          "artist": [
+            {
+              "id": "50Bj1qb4kULA8ghMLsPiz8",
+              "name": "NAV",
+              "coverArt": "ar-50Bj1qb4kULA8ghMLsPiz8_0e45481ae36918ae",
+              "albumCount": 2,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "nav",
+              "roles": [
+                "artist",
+                "maincredit",
+                "albumartist"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "O",
+          "artist": [
+            {
+              "id": "26FlCnDVivCwMXn36F6XvV",
+              "name": "Offset",
+              "coverArt": "ar-26FlCnDVivCwMXn36F6XvV_b165cda76b1b8294",
+              "albumCount": 2,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "offset",
+              "roles": [
+                "artist",
+                "maincredit",
+                "albumartist"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "P",
+          "artist": [
+            {
+              "id": "6UIQYMHOZTQawIYEKC7wpv",
+              "name": "Playboi Carti",
+              "coverArt": "ar-6UIQYMHOZTQawIYEKC7wpv_9031a2b8b92ee4fa",
+              "albumCount": 2,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "playboi carti",
+              "roles": [
+                "artist",
+                "maincredit",
+                "albumartist"
+              ]
+            },
+            {
+              "id": "6LAUZ1vAcCAG2xbSeLSOqu",
+              "name": "Post Malone",
+              "coverArt": "ar-6LAUZ1vAcCAG2xbSeLSOqu_fb6ecfebab067923",
+              "albumCount": 5,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "post malone",
+              "roles": [
+                "albumartist",
+                "artist",
+                "maincredit"
+              ]
+            },
+            {
+              "id": "5iEVmDIy3fFv4p4aX5ZcCj",
+              "name": "Pusha T",
+              "coverArt": "ar-5iEVmDIy3fFv4p4aX5ZcCj_fc66f059f3206f09",
+              "albumCount": 1,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "pusha t",
+              "roles": [
+                "maincredit",
+                "albumartist",
+                "artist"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "X-Z",
+          "artist": [
+            {
+              "id": "2VIFY69aB4OGgHgBWbRHMa",
+              "name": "Yeat",
+              "coverArt": "ar-2VIFY69aB4OGgHgBWbRHMa_c38696ffcf7d61eb",
+              "albumCount": 1,
+              "artistImageUrl": "https://image.example/",
+              "musicBrainzId": "",
+              "sortName": "yeat",
+              "roles": [
+                "albumartist",
+                "artist",
+                "maincredit"
+              ]
+            }
+          ]
+        }
+      ],
+      "lastModified": 1795754950000,
+      "ignoredArticles": "The El La Los Las Le Les Os As O A"
+    }
+  }
+}

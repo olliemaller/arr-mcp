@@ -1553,12 +1553,13 @@ const ENDPOINTS: Record<ServiceId, Endpoint[]> = {
         { name: 'artists', path: '/rest/getArtists', anonymise: anonymiseNavidrome },
         {
             name: 'artist',
-            // An artist with a MusicBrainz id and albums: the join and the album titles are what the adapter reads.
+            // An artist with albums, one with a MusicBrainz id first: the join and the album titles are what the adapter reads.
             path: captured => {
                 const index = (captured.get('artists') as { 'subsonic-response'?: { artists?: { index?: { artist?: { id?: unknown; musicBrainzId?: unknown; albumCount?: unknown }[] }[] } } } | undefined)?.[
                     'subsonic-response'
                 ]?.artists?.index;
-                const artist = (index ?? []).flatMap(i => i.artist ?? []).find(a => typeof a.musicBrainzId === 'string' && a.musicBrainzId !== '' && Number(a.albumCount) > 0);
+                const withAlbums = (index ?? []).flatMap(i => i.artist ?? []).filter(a => Number(a.albumCount) > 0);
+                const artist = withAlbums.find(a => typeof a.musicBrainzId === 'string' && a.musicBrainzId !== '') ?? withAlbums[0];
                 return typeof artist?.id === 'string' ? `/rest/getArtist?id=${encodeURIComponent(artist.id)}` : undefined;
             },
             anonymise: anonymiseNavidrome

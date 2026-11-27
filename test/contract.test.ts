@@ -1303,6 +1303,17 @@ const CONTRACTS: Record<string, ServiceContract> = {
             { path: '/api/v1/books/status', method: 'post', fixture: 'test/fixtures/grimmory/mock-books-status.json', fields: ['bookId', 'readStatus'] },
             { path: '/api/v1/bookdrop/files', fixture: 'test/fixtures/grimmory/mock-bookdrop-files-pending.json', fields: ['content.id', 'content.fileName', 'content.createdAt'] }
         ]
+    },
+    // The Subsonic API publishes no OpenAPI spec. Fixtures are a live 0.64.2, signed in as a non-admin user.
+    navidrome: {
+        dependencies: [
+            { fixture: 'test/fixtures/navidrome/ping.json', fields: ['subsonic-response.status', 'subsonic-response.type', 'subsonic-response.serverVersion'] },
+            {
+                fixture: 'test/fixtures/navidrome/artists.json',
+                fields: ['subsonic-response.artists.index.artist.id', 'subsonic-response.artists.index.artist.name', 'subsonic-response.artists.index.artist.musicBrainzId']
+            },
+            { fixture: 'test/fixtures/navidrome/artist.json', fields: ['subsonic-response.artist.album.name'] }
+        ]
     }
 };
 

@@ -1,0 +1,72 @@
+{
+  "subsonic-response": {
+    "status": "ok",
+    "version": "1.16.1",
+    "type": "navidrome",
+    "serverVersion": "0.64.2 (10114574)",
+    "openSubsonic": true,
+    "artist": {
+      "id": "4NxVR0mOPN6KeIt2HyVgYS",
+      "name": "21 Savage",
+      "coverArt": "ar-4NxVR0mOPN6KeIt2HyVgYS_e9c8923d24a6316b",
+      "albumCount": 1,
+      "artistImageUrl": "https://image.example/",
+      "musicBrainzId": "",
+      "sortName": "21 savage",
+      "roles": [
+        "albumartist",
+        "artist",
+        "maincredit"
+      ],
+      "album": [
+        {
+          "id": "6hoBkJH6R8Sa3yKtFI0ayR",
+          "name": "Her Loss",
+          "artist": "Drake • 21 Savage",
+          "artistId": "2Y09fvZjxV9n5twPmfCTDz",
+          "coverArt": "al-6hoBkJH6R8Sa3yKtFI0ayR_b12a28bd6a358f66",
+          "songCount": 16,
+          "duration": 3641,
+          "created": "2026-11-25T15:27:48.698841972+11:00",
+          "year": 2022,
+          "genre": "Rap",
+          "userRating": 0,
+          "genres": [
+            {
+              "name": "Rap"
+            },
+            {
+              "name": "Hip Hop"
+            }
+          ],
+          "musicBrainzId": "",
+          "isCompilation": false,
+          "sortName": "her loss",
+          "discTitles": [],
+          "originalReleaseDate": {},
+          "releaseDate": {},
+          "releaseTypes": [],
+          "recordLabels": [
+            {
+              "name": "PMEDIA"
+            }
+          ],
+          "moods": [],
+          "artists": [
+            {
+              "id": "2Y09fvZjxV9n5twPmfCTDz",
+              "name": "Drake"
+            },
+            {
+              "id": "4NxVR0mOPN6KeIt2HyVgYS",
+              "name": "21 Savage"
+            }
+          ],
+          "displayArtist": "Drake • 21 Savage",
+          "explicitStatus": "explicit",
+          "version": ""
+        }
+      ]
+    }
+  }
+}

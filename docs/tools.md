@@ -712,8 +712,6 @@ arr-mcp cannot start a Navidrome scan, so the remedy says to start one there and
 `next_steps` offers no `trigger_scan`. A failed album read shows up as
 `navidrome:albums` in `degraded` and leaves the stage as the artist read put it.
 
-**Unverified live** (Navidrome): the artist list and an artist's album titles; the adapter has only met the live server's unauthenticated ping.
-
 
 ## `get_stack_health`
 
@@ -1116,8 +1114,6 @@ in `failures` rather than here. Jellyfin's and Emby's real logs are plain-text
 files, and Dispatcharr and Profilarr have no log to read, so none of the four
 appears here.
 
-**Unverified live** (Navidrome): the connection test with a login; only the unauthenticated ping has been recorded.
-
 
 ## `get_library`
 
@@ -1432,7 +1428,12 @@ id. A failed Navidrome read is `navidrome:music` in `degraded`, and every artist
 reads `unknown` rather than `arr_only`. With two media servers, an artist's
 `media_servers` entry is Navidrome's.
 
-**Unverified live** (Navidrome): the artist list behind `presence`.
+Navidrome takes an artist's MusicBrainz id from the tags in its files. An
+artist whose files carry none has no id, so it never joins: the Lidarr artist
+reads `arr_only` and Navidrome's reads `jellyfin_only`, with no album check.
+Lidarr writes the tags when Settings → Metadata → Tag Audio Files is on, and
+`fix_metadata` with `id: "lidarr:<artistId>"` retags an artist already on disk;
+Navidrome then needs a full rescan to read them.
 
 
 ## `get_playback`
