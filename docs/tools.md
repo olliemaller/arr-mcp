@@ -8,7 +8,7 @@ off until you turn them on; see [writes](writes.md).
 | `diagnose_media` | Why is this not playable? |
 | `get_stack_health` | Is anything broken, out of disk, or not scanning? |
 | `get_instance_options` | Which quality profiles, root folders and tags can I pick for Radarr, Sonarr, Whisparr and Lidarr? |
-| `search_media` | What do I have, what exists, what can I get? `source: "discover"` tells me about a title without adding it; artists too, with Lidarr, and books, with Shelfmark. Books in Grimmory too, from the library |
+| `search_media` | What do I have, what exists, what can I get? `source: "discover"` tells me about a title without adding it; artists too, with Lidarr, and books, with Shelfmark and ReadMeABook. Books in Grimmory too, from the library |
 | `get_media_details` | Everything about one item; on Lidarr, one artist and the albums under it; on Grimmory, one book and its files |
 | `get_metadata_issues` | Which films and series have metadata that does not describe their files; which Grimmory books have a low match score or no identifier |
 | `get_library` | What's in my library: joined across Radarr, Sonarr, Lidarr and your media server, and where they disagree; Lidarr artists are their own kind, joined by MusicBrainz id; Grimmory books are their own kind too |
@@ -109,7 +109,7 @@ What `kind` means, and which services hold it. A `kind` field offers only the ki
 | `movie` | Radarr |
 | `series` | Sonarr, Whisparr |
 | `artist` | Lidarr |
-| `book` | Shelfmark, Grimmory |
+| `book` | Shelfmark, Grimmory, ReadMeABook |
 <!-- tool-map:end -->
 
 ## Common routes
@@ -724,8 +724,8 @@ credentials runs beside `config.yaml` and imports `loadConfig`.
 `failures` carries what each service says is wrong with itself. Radarr,
 Sonarr, Whisparr, Lidarr, Prowlarr and Bazarr report their own health checks,
 NZBGet its `systemhealth` alerts (v26 and later), and Cleanuparr, Reclaimerr,
-Dispatcharr and Shelfmark their own status (see [Dispatcharr](#dispatcharr) and
-[Shelfmark](#shelfmark) below). Grimmory reports unreachable libraries, old
+Dispatcharr, Shelfmark and ReadMeABook their own status (see [Dispatcharr](#dispatcharr),
+[Shelfmark](#shelfmark) and [ReadMeABook](#readmeabook) below). Grimmory reports unreachable libraries, old
 Bookdrop files and a newer release (see [Grimmory](#grimmory) below).
 
 Sonarr adds one of its own: a warning, from one read of its naming config, when
@@ -1018,6 +1018,27 @@ row Shelfmark marks as not retryable. Shelfmark's history has no per-book scope,
 
 `diagnose_media` leaves Shelfmark out, because a book is not on the film and series
 chain it walks.
+
+### ReadMeABook
+
+With ReadMeABook configured, its findings cover audiobook requests:
+
+| Finding | Level |
+|---|---|
+| ReadMeABook cannot reach its database | error |
+| Each issue ReadMeABook's own system health names, such as stale downloads | warning |
+| Requests failed in the last 30 days, with the count | warning |
+
+`search_media` with `source: "discover"` finds audiobooks in ReadMeABook's
+Audible catalogue (`kind: book`), as `<title> by <author>` keyed by ASIN, with
+`hasFile` saying whether ReadMeABook already has it. A library search asks it
+nothing. ReadMeABook is read-only here: nothing requests or cancels a book, and
+`get_requests` and `get_queue` do not read it yet. `diagnose_media` leaves it
+out, because a book is not on the film and series chain it walks.
+
+**Unverified live** (ReadMeABook): a system health issue and the failed-requests count.
+
+**Unverified live** (ReadMeABook): the lost-database finding, a 503 from `/api/health`.
 
 ### Grimmory
 

@@ -413,6 +413,7 @@ exercise. Where the tool has its own section, the same path carries an
 | `set_watched` | `grimmory` | Marking a book read or unread | The test response is a hand-made mock; no live book has been changed |
 | `import_download` | `grimmory` | Approving one Bookdrop file (`id`) | Built from Grimmory's OpenAPI spec and mocks; the first real approval is its test |
 | `get_history` | `grimmory` | The `BOOK_UPLOADED` audit row | No upload has been captured, so the shape follows Grimmory's API description |
+| `get_stack_health` | `readmeabook` | A system health issue, the failed-requests count, and the lost-database finding (a 503 from `/api/health`) | The live install had no requests, no issues and a working database; tested on the captured bodies with those answers constructed |
 | `get_history` | `shelfmark` | The `failed` and `stopped` rows | The live Shelfmark has had no failed or cancelled download; tested on captured bodies with those answers constructed |
 
 ## The audit trail

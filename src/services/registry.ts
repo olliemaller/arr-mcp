@@ -10,6 +10,7 @@ import { LidarrAdapter } from './lidarr.ts';
 import { NzbgetAdapter } from './nzbget.ts';
 import { PlexAdapter } from './plex.ts';
 import { ProfilarrAdapter } from './profilarr.ts';
+import { ReadMeABookAdapter } from './readmeabook.ts';
 import { ReclaimerrAdapter } from './reclaimerr.ts';
 import { ProwlarrAdapter } from './prowlarr.ts';
 import { QbittorrentAdapter } from './qbittorrent.ts';
@@ -90,6 +91,8 @@ function buildAdapter(instance: ServiceInstance): ServiceAdapter {
             return new ShelfmarkAdapter(instance.config);
         case 'grimmory':
             return new GrimmoryAdapter(instance.config);
+        case 'readmeabook':
+            return new ReadMeABookAdapter(instance.config);
         case 'sonarr':
             return new SonarrAdapter(instance.config);
         case 'transmission':

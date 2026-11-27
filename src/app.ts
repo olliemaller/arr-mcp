@@ -101,6 +101,7 @@ const ROLES: readonly (readonly [ServiceId, string])[] = [
     ['seerr', 'Seerr requests'],
     ['grimmory', 'Grimmory books'],
     ['shelfmark', 'Shelfmark book downloads'],
+    ['readmeabook', 'ReadMeABook audiobook requests'],
     ['sabnzbd', 'SABnzbd downloads'],
     ['nzbget', 'NZBGet downloads'],
     ['transmission', 'Transmission downloads'],

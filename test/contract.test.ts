@@ -1303,6 +1303,16 @@ const CONTRACTS: Record<string, ServiceContract> = {
             { path: '/api/v1/books/status', method: 'post', fixture: 'test/fixtures/grimmory/mock-books-status.json', fields: ['bookId', 'readStatus'] },
             { path: '/api/v1/bookdrop/files', fixture: 'test/fixtures/grimmory/mock-bookdrop-files-pending.json', fields: ['content.id', 'content.fileName', 'content.createdAt'] }
         ]
+    },
+    // No spec: ReadMeABook documents its token routes in prose. Fixtures are a live install reporting vDEV.
+    readmeabook: {
+        dependencies: [
+            { path: '/api/health', fixture: 'test/fixtures/readmeabook/health.json', fields: ['status'] },
+            { path: '/api/version', fixture: 'test/fixtures/readmeabook/version.json', fields: ['version'] },
+            { path: '/api/auth/me', fixture: 'test/fixtures/readmeabook/auth-me.json', fields: ['user.role'] },
+            { path: '/api/admin/metrics', fixture: 'test/fixtures/readmeabook/metrics.json', fields: ['failedLast30Days', 'systemHealth.issues'] },
+            { path: '/api/audiobooks/search', fixture: 'test/fixtures/readmeabook/search.json', fields: ['results.asin', 'results.title', 'results.author', 'results.releaseDate', 'results.isAvailable'] }
+        ]
     }
 };
 

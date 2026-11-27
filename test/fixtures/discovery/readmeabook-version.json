@@ -1,0 +1,11 @@
+{
+  "service": "readmeabook",
+  "path": "/api/version",
+  "source": "live",
+  "note": "a community-scripts build, which reports vDEV",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "{\"version\":\"vDEV\",\"fullVersion\":\"unknown\",\"commit\":\"unknown\",\"buildDate\":\"unknown\"}"
+}

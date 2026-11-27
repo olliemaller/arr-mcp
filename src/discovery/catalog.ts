@@ -237,6 +237,18 @@ export const CATALOG: readonly CatalogEntry[] = [
             if (o === undefined || data === undefined || o.message !== 'Pong' || data.status !== 'UP') return undefined;
             return matched(nonEmptyString(data.version) ? data.version : undefined);
         }
+    },
+    {
+        type: 'readmeabook',
+        port: 3030,
+        containerNames: ['readmeabook'],
+        path: '/api/version',
+        identify: r => {
+            const o = jsonObject(r);
+            if (o === undefined || !sameKeys(o, ['version', 'fullVersion', 'commit', 'buildDate']) || !nonEmptyString(o.version)) return undefined;
+            // A build from source says `vDEV`, which is no version.
+            return matched(o.version === 'vDEV' ? undefined : o.version.replace(/^v/, ''));
+        }
     }
 ];
 

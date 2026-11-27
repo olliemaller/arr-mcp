@@ -88,7 +88,7 @@ export const KIND_SERVICES: Readonly<Record<LibraryKind, readonly ServiceId[]>> 
     movie: ['radarr'],
     series: ['sonarr', 'whisparr'],
     artist: ['lidarr'],
-    book: ['shelfmark', 'grimmory']
+    book: ['shelfmark', 'grimmory', 'readmeabook']
 };
 
 const SAFE_INT = Number.MAX_SAFE_INTEGER;

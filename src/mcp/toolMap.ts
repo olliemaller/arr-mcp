@@ -26,6 +26,7 @@ const NAMES: ReadonlyArray<readonly [ServiceId, string]> = [
     ['qbittorrent', 'qBittorrent'],
     ['shelfmark', 'Shelfmark'],
     ['grimmory', 'Grimmory'],
+    ['readmeabook', 'ReadMeABook'],
     ['seerr', 'Seerr'],
     ['prowlarr', 'Prowlarr'],
     ['profilarr', 'Profilarr'],

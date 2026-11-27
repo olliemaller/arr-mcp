@@ -1,0 +1,16 @@
+{
+  "user": {
+    "id": "dabdffbd-3dc8-45bc-97ce-e6be9dc84bf8",
+    "plexId": "example-plex-id",
+    "username": "example-user",
+    "role": "admin",
+    "isLocalAdmin": true,
+    "authProvider": "local",
+    "createdAt": "2026-11-25T05:34:36.100Z",
+    "lastLoginAt": "2026-11-27T04:21:53.876Z",
+    "permissions": {
+      "interactiveSearch": true,
+      "download": true
+    }
+  }
+}

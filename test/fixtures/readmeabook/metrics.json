@@ -1,0 +1,11 @@
+{
+  "totalRequests": 0,
+  "activeDownloads": 0,
+  "completedLast30Days": 0,
+  "failedLast30Days": 0,
+  "totalUsers": 1,
+  "systemHealth": {
+    "status": "healthy",
+    "issues": []
+  }
+}

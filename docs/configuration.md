@@ -28,10 +28,10 @@ services:
     password: "…"
 ```
 
-All twenty service ids: `radarr`, `sonarr`, `whisparr`, `lidarr`, `prowlarr`,
+All twenty-one service ids: `radarr`, `sonarr`, `whisparr`, `lidarr`, `prowlarr`,
 `bazarr`, `jellyfin`, `emby`, `seerr`, `sabnzbd`, `nzbget`, `transmission`,
 `qbittorrent`, `plex`, `profilarr`, `cleanuparr`, `reclaimerr`, `dispatcharr`,
-`shelfmark`, `grimmory`. Configure only what you run. Running both torrent
+`shelfmark`, `grimmory`, `readmeabook`. Configure only what you run. Running both torrent
 clients at once is supported; their queues merge, each item labelled with the
 client it came from.
 
@@ -500,6 +500,29 @@ you want. arr-mcp writes three things: queueing a release and retrying a downloa
 with `safe_write` on, and cancelling a download with `destructive` on. Single instance only, because one Shelfmark holds one download
 queue. Needs Shelfmark 1.5.0 or newer, the first with `/api/stats`.
 
+## ReadMeABook
+
+```yaml
+services:
+  readmeabook:
+    url: http://192.168.1.20:3030
+    api_key: "rmab_…"
+```
+
+The key is an API token, made under **Profile, API Tokens** in ReadMeABook and
+shown once. Make it from an admin's profile: a token acts with its owner's role,
+and the health checks read admin routes, so a user's token fails the connection
+test with a remedy saying so. A token reaches only the routes ReadMeABook lists
+on its `/api-docs` page, two of which write (making and cancelling a request).
+arr-mcp calls neither: ReadMeABook is read-only here, so its write permissions
+are always off. Single instance only, because one ReadMeABook holds one set of
+audiobook requests. Needs ReadMeABook 1.2.1 or newer, the first whose tokens
+reach every route arr-mcp reads.
+
+A ReadMeABook built from source, as the Proxmox community script installs it,
+reports its version as `vDEV`. arr-mcp treats that as no version: the connection
+works, the version is left out, and the 1.2.1 floor is not checked.
+
 ## Grimmory
 
 ```yaml
@@ -589,13 +612,13 @@ which instance you meant. See [writes](writes.md#with-more-than-one-instance-wri
 **Permissions are per instance**: each entry carries its own `permissions`
 block.
 
-**Eleven services stay single.** Jellyfin, Emby and Plex because each is one
+**Twelve services stay single.** Jellyfin, Emby and Plex because each is one
 server ([running two](#two-media-servers) is a different thing). Seerr
 because a request carries the identity of the person who made it. Whisparr
 because the one deployment that wants two is V2 beside V3 (Eros), and Eros is a
 different API with no adapter. Profilarr because it owns profile config.
-Cleanuparr, Reclaimerr, Dispatcharr, Shelfmark and Grimmory for the reasons in
-their own sections.
+Cleanuparr, Reclaimerr, Dispatcharr, Shelfmark, Grimmory and ReadMeABook for the
+reasons in their own sections.
 
 Everything else takes a list: Radarr, Sonarr, Lidarr, Bazarr, Prowlarr, SABnzbd,
 NZBGet, Transmission and qBittorrent.

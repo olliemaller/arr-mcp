@@ -46,6 +46,7 @@ import {
 } from './lib/lidarrCapture.ts';
 import { anonymiseDispatcharr } from './lib/dispatcharrCapture.ts';
 import { anonymiseGrimmory } from './lib/grimmoryCapture.ts';
+import { anonymiseReadMeABook } from './lib/readmeabookCapture.ts';
 import { anonymiseShelfmarkConfig, anonymiseShelfmarkHistory, anonymiseShelfmarkReleases, anonymiseShelfmarkSearch, anonymiseShelfmarkSnapshot, anonymiseShelfmarkStatus } from './lib/shelfmarkCapture.ts';
 import {
     anonymiseArrLog,
@@ -1623,6 +1624,18 @@ const ENDPOINTS: Record<ServiceId, Endpoint[]> = {
             },
             anonymise: anonymiseShelfmarkReleases
         }
+    ],
+    // Capture with an admin's API token: three of these are admin routes. Every
+    // route here is on ReadMeABook's API token allowlist; nothing written.
+    readmeabook: [
+        { name: 'health', path: '/api/health' },
+        { name: 'version', path: '/api/version' },
+        // Scrubbed in lib/readmeabookCapture.ts: these bodies name accounts and paths on disk.
+        { name: 'auth-me', path: '/api/auth/me', anonymise: anonymiseReadMeABook },
+        { name: 'requests', path: '/api/requests?myOnly=true&take=20', anonymise: anonymiseReadMeABook },
+        { name: 'metrics', path: '/api/admin/metrics', anonymise: anonymiseReadMeABook },
+        { name: 'downloads-active', path: '/api/admin/downloads/active', anonymise: anonymiseReadMeABook },
+        { name: 'search', path: '/api/audiobooks/search?q=project%20hail%20mary', anonymise: anonymiseReadMeABook }
     ]
 };
 
@@ -1787,7 +1800,7 @@ function strategyFor(id: ServiceId, service: NonNullable<Config['services'][Serv
     if (id === 'plex') return plexToken(key);
     if (id === 'sabnzbd') return queryParamKey('apikey', key);
     if (id === 'bazarr') return apiKeyHeader('X-API-KEY', key);
-    if (id === 'reclaimerr') return apiKeyHeader('Authorization', `Bearer ${key}`);
+    if (id === 'reclaimerr' || id === 'readmeabook') return apiKeyHeader('Authorization', `Bearer ${key}`);
     if (id === 'dispatcharr') return apiKeyHeader('X-API-Key', key);
     return apiKeyHeader('X-Api-Key', key);
 }

@@ -82,7 +82,12 @@ export const MINIMUM_VERSIONS: Record<ServiceId, string> = {
     // /api/stats is refused on the 404 instead.
     shelfmark: '1.5.0',
     // Written against tag v3.5.0 and captured live on v3.5.0 (2026-11-07).
-    grimmory: '3.5.0'
+    grimmory: '3.5.0',
+    // 1.2.1 is the first release whose API tokens may call every route this
+    // adapter reads (1.1.0 added the tokens, 1.2.1 added search). A build from
+    // source reports `vDEV`, since only the official image sets APP_VERSION,
+    // and connects with this floor unchecked.
+    readmeabook: '1.2.1'
 };
 
 /** Digits only; a build suffix such as Transmission's "(838877323f)" is dropped. */

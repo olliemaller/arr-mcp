@@ -15,11 +15,11 @@ export const MediaKindSchema = z
     .meta({ [KINDS_KEY]: true })
     .optional()
     .describe(
-        'What the title is, which is also the service that holds it. [[radarr: `movie`: Radarr.]] [[sonarr|whisparr: `series`: {{and: sonarr=Sonarr; whisparr=Whisparr}}.]] [[lidarr: `artist`: Lidarr.]] [[shelfmark|grimmory: `book`: {{and: shelfmark=Shelfmark; grimmory=Grimmory}}.]] Pass it when the request names one of those services. Services holding another kind are not asked. Omit for all.'
+        'What the title is, which is also the service that holds it. [[radarr: `movie`: Radarr.]] [[sonarr|whisparr: `series`: {{and: sonarr=Sonarr; whisparr=Whisparr}}.]] [[lidarr: `artist`: Lidarr.]] [[shelfmark|grimmory|readmeabook: `book`: {{and: shelfmark=Shelfmark; grimmory=Grimmory; readmeabook=ReadMeABook}}.]] Pass it when the request names one of those services. Services holding another kind are not asked. Omit for all.'
     );
 
 /**
- * What a service holds, when it says. The *arrs, Shelfmark and Grimmory
+ * What a service holds, when it says. The *arrs, Shelfmark, Grimmory and ReadMeABook
  * declare it as `queueKind`; Seerr, the media servers, Prowlarr and the
  * download clients hold more than one kind, or none, and answer `undefined`.
  */

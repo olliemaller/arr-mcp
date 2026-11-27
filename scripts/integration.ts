@@ -42,6 +42,7 @@ import { ProfilarrAdapter } from '../src/services/profilarr.ts';
 import { CleanuparrAdapter } from '../src/services/cleanuparr.ts';
 import { ReclaimerrAdapter } from '../src/services/reclaimerr.ts';
 import { DispatcharrAdapter } from '../src/services/dispatcharr.ts';
+import { ReadMeABookAdapter } from '../src/services/readmeabook.ts';
 import { ShelfmarkAdapter } from '../src/services/shelfmark.ts';
 import { BOOK_MATCH_THRESHOLD, GrimmoryAdapter } from '../src/services/grimmory.ts';
 import { ServiceError } from '../src/core/errors.ts';
@@ -1130,6 +1131,31 @@ if (config.services?.shelfmark !== undefined) {
     }
 } else {
     console.log('SKIP shelfmark — not configured.');
+}
+
+/**
+ * ReadMeABook, read only: the connection test, its health findings and a
+ * catalogue search. It never requests or cancels: a request starts a real
+ * search and download.
+ */
+if (config.services?.readmeabook !== undefined) {
+    const started = performance.now();
+    try {
+        const readmeabook = new ReadMeABookAdapter(config.services.readmeabook);
+        const connection = await readmeabook.testConnection();
+        if (!connection.ok) throw new Error(`${connection.error?.detail ?? 'connection failed'}: ${connection.error?.remedy ?? ''}`);
+        const findings = await readmeabook.getFailedHealthChecks();
+        const hits = await readmeabook.search('project hail mary', 'discover');
+        const ms = Math.round(performance.now() - started);
+        console.log(`PASS readmeabook ${connection.version ?? '?'}: ${findings.length} finding(s), ${hits.length} search hit(s) (${ms}ms)`);
+        for (const f of findings) console.log(`     ${f.type} ${f.source}: ${redactHosts(f.message, hosts)}`);
+        passes += 1;
+    } catch (err) {
+        console.error(`FAIL readmeabook: ${redactHosts((err as Error).message, hosts)}`);
+        failures += 1;
+    }
+} else {
+    console.log('SKIP readmeabook: not configured.');
 }
 
 /**

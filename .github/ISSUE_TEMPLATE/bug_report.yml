@@ -61,6 +61,7 @@ body:
         - label: Dispatcharr
         - label: Shelfmark
         - label: Grimmory
+        - label: ReadMeABook
 
   - type: input
     id: service-versions
