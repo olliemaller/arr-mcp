@@ -32,7 +32,7 @@ describe('the tool map', () => {
 
     it('lists which services hold each kind', () => {
         expect(map).toContain('| `series` | Sonarr, Whisparr |');
-        expect(map).toContain('| `book` | Shelfmark, Grimmory |');
+        expect(map).toContain('| `book` | Shelfmark, Grimmory, Audiobookshelf |');
     });
 
     it('says when a read is listed, not only a write', () => {

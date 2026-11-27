@@ -1,0 +1,11 @@
+{
+  "service": "audiobookshelf",
+  "path": "/status",
+  "version": "2.38.0",
+  "source": "live",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json; charset=utf-8"
+  },
+  "body": "{\"app\":\"audiobookshelf\",\"serverVersion\":\"2.38.0\",\"isInit\":true,\"language\":\"en-us\",\"authMethods\":[\"local\"],\"authFormData\":{\"authLoginCustomMessage\":\"\"}}"
+}

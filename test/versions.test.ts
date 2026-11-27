@@ -170,7 +170,9 @@ describe('assertVersionSupported against captured evidence', () => {
         reclaimerr: (read('test/fixtures/reclaimerr/system.json') as { version: string }).version,
         dispatcharr: (read('test/fixtures/dispatcharr/version.json') as { version: string }).version,
         shelfmark: (read('test/fixtures/shelfmark/config.json') as { release_version: string }).release_version,
-        grimmory: (read('test/fixtures/grimmory/healthcheck.json') as { data: { version: string } }).data.version.replace(/^v/, '')
+        grimmory: (read('test/fixtures/grimmory/healthcheck.json') as { data: { version: string } }).data.version.replace(/^v/, ''),
+        // The unauthenticated /status probe, the one live Audiobookshelf response recorded so far.
+        audiobookshelf: (read('test/fixtures/discovery/audiobookshelf-status.json') as { version: string }).version
     };
 
     for (const [service, version] of Object.entries(captured)) {

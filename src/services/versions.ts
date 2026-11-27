@@ -82,7 +82,10 @@ export const MINIMUM_VERSIONS: Record<ServiceId, string> = {
     // /api/stats is refused on the 404 instead.
     shelfmark: '1.5.0',
     // Written against tag v3.5.0 and captured live on v3.5.0 (2026-11-07).
-    grimmory: '3.5.0'
+    grimmory: '3.5.0',
+    // 2.26.0 is the first release with API keys (upstream #4444), the
+    // credential this adapter takes. Written against 2.38.0.
+    audiobookshelf: '2.26.0'
 };
 
 /** Digits only; a build suffix such as Transmission's "(838877323f)" is dropped. */

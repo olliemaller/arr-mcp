@@ -32,6 +32,7 @@
  * line — pass or fail — is passed through `redactHosts` first.
  */
 import { loadConfig } from '../src/config/load.ts';
+import { resolveSecrets } from '../src/config/secretSources.ts';
 import { withScriptToken } from './lib/scriptToken.ts';
 import { buildApp } from '../src/app.ts';
 import { WriteAudit } from '../src/core/audit.ts';
@@ -41,6 +42,7 @@ import { TOOL_NAMES } from '../src/tools/register.ts';
 import { ProfilarrAdapter } from '../src/services/profilarr.ts';
 import { CleanuparrAdapter } from '../src/services/cleanuparr.ts';
 import { ReclaimerrAdapter } from '../src/services/reclaimerr.ts';
+import { AudiobookshelfAdapter } from '../src/services/audiobookshelf.ts';
 import { DispatcharrAdapter } from '../src/services/dispatcharr.ts';
 import { ShelfmarkAdapter } from '../src/services/shelfmark.ts';
 import { BOOK_MATCH_THRESHOLD, GrimmoryAdapter } from '../src/services/grimmory.ts';
@@ -1104,6 +1106,29 @@ if (config.services?.dispatcharr !== undefined) {
     }
 } else {
     console.log('SKIP dispatcharr — not configured.');
+}
+
+/**
+ * Audiobookshelf, read only: the connection test (version, then the library
+ * list, which proves the key) and the whole book read behind get_library.
+ * Counts only, never titles.
+ */
+if (config.services?.audiobookshelf !== undefined) {
+    const started = performance.now();
+    try {
+        const abs = new AudiobookshelfAdapter(resolveSecrets(config).services.audiobookshelf as NonNullable<typeof config.services.audiobookshelf>);
+        const connection = await abs.testConnection();
+        if (!connection.ok) throw new Error(`${connection.error?.detail ?? 'connection failed'}: ${connection.error?.remedy ?? ''}`);
+        const books = await abs.listLibrary();
+        const ms = Math.round(performance.now() - started);
+        console.log(`PASS audiobookshelf ${connection.version ?? '?'}: ${books.length} book(s), ${books.filter(b => b.acquisition?.hasFile !== true).length} without media (${ms}ms)`);
+        passes += 1;
+    } catch (err) {
+        console.error(`FAIL audiobookshelf: ${redactHosts((err as Error).message, hosts)}`);
+        failures += 1;
+    }
+} else {
+    console.log('SKIP audiobookshelf: not configured.');
 }
 
 /**

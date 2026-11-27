@@ -22,7 +22,8 @@ export const ServiceIdSchema = z.enum([
     'reclaimerr',
     'dispatcharr',
     'shelfmark',
-    'grimmory'
+    'grimmory',
+    'audiobookshelf'
 ]);
 export type ServiceId = z.infer<typeof ServiceIdSchema>;
 
@@ -286,6 +287,7 @@ export type ConfigByService = {
     dispatcharr: For<'dispatcharr', KeyedServiceConfig>;
     shelfmark: For<'shelfmark', OptionalKeyServiceConfig>;
     grimmory: For<'grimmory', GrimmoryServiceConfig>;
+    audiobookshelf: For<'audiobookshelf', KeyedServiceConfig>;
 };
 
 /**
@@ -447,7 +449,9 @@ const SERVICES = {
     // Single only: one Shelfmark holds one download queue and one set of requests.
     shelfmark: single(OptionalKeyServiceSchema),
     // Single only: one Grimmory is the book library, and get_library's book rows need one source.
-    grimmory: single(GrimmoryServiceSchema)
+    grimmory: single(GrimmoryServiceSchema),
+    // Single only, as Grimmory: one audiobook library is where downloads land.
+    audiobookshelf: readOnly(KeyedServiceSchema)
 } satisfies Record<ServiceId, { schema: z.ZodType; traits: ServiceTraits }>;
 
 export const serviceTraits = (type: ServiceId): ServiceTraits => SERVICES[type].traits;

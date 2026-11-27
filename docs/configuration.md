@@ -547,6 +547,33 @@ hours of use.
 Single instance only, because `get_library` needs one book source. Needs
 Grimmory 3.5.0 or newer, the version the adapter was written against.
 
+## Audiobookshelf
+
+```yaml
+services:
+  audiobookshelf:
+    url: http://192.168.1.20:13378
+    api_key: "…"
+```
+
+arr-mcp reads Audiobookshelf's book libraries with an API key, sent as a Bearer
+token. Create the key under Settings → API Keys (Audiobookshelf 2.26.0 or newer).
+A key acts on behalf of a user and has that user's permissions, so make a user
+for it first: account type `user`, not admin, with access to every audiobook
+library (or every library) and with download, update, delete and upload all off.
+arr-mcp only reads, and nothing it calls needs more. Leave the key without an
+expiry, or note the date: an expired key shows up in `get_stack_health` as
+refused.
+
+Its audiobooks appear in `get_library` as `book` rows beside Grimmory's, with
+the library's name in `library` and `has_file: false` for an item Audiobookshelf
+marks missing or that has no audio or ebook file. Podcast libraries are left out.
+arr-mcp cannot start an Audiobookshelf scan (that needs an admin), and it reads
+no listening progress, so a book's `watched` is not set.
+
+Read only and single instance. Needs Audiobookshelf 2.26.0 or newer, the first
+release with API keys.
+
 ## Several instances of one service
 
 Running an HD and a 4K Radarr side by side is a common setup, and arr-mcp reads

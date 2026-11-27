@@ -545,7 +545,7 @@ const getLibraryInput = byMediaServers(ids => toolInput({
         .enum(['movie', 'series', 'artist', 'book'])
         .meta({ [KINDS_KEY]: true })
         .optional()
-        .describe('Only {{or: radarr=films; sonarr|whisparr=series; lidarr=Lidarr artists; grimmory=Grimmory books; else=this kind}}; omit for all.'),
+        .describe('Only {{or: radarr=films; sonarr|whisparr=series; lidarr=Lidarr artists; grimmory=Grimmory books; audiobookshelf=Audiobookshelf audiobooks; else=this kind}}; omit for all.'),
     year: z.number().int().optional(),
     genre: z.string().min(1).optional().describe('Matched case-insensitively against the *arr genres.'),
     monitored: z.boolean().optional(),
@@ -564,7 +564,7 @@ const getLibraryInput = byMediaServers(ids => toolInput({
     // described nowhere, so it carries no description of its own.
     watched_by: z.string().min(1).optional(),
     quality: z.string().min(1).optional().describe("Films, or a book's file format such as EPUB."),
-    library: z.string().min(1).optional().describe('[[grimmory: A Grimmory library, by name; matches books only.]]'),
+    library: z.string().min(1).optional().describe('[[grimmory|audiobookshelf: A {{or: grimmory=Grimmory; audiobookshelf=Audiobookshelf}} library, by name; matches books only.]]'),
     added_since: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}/, 'must start with an ISO 8601 date (YYYY-MM-DD), e.g. "2026-08-01" or "2026-08-01T00:00:00Z".')

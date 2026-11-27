@@ -414,6 +414,8 @@ exercise. Where the tool has its own section, the same path carries an
 | `import_download` | `grimmory` | Approving one Bookdrop file (`id`) | Built from Grimmory's OpenAPI spec and mocks; the first real approval is its test |
 | `get_history` | `grimmory` | The `BOOK_UPLOADED` audit row | No upload has been captured, so the shape follows Grimmory's API description |
 | `get_history` | `shelfmark` | The `failed` and `stopped` rows | The live Shelfmark has had no failed or cancelled download; tested on captured bodies with those answers constructed |
+| `get_library` | `audiobookshelf` | The library list and the minified item pages behind the `book` rows | Written from the API docs; no key was available to capture with, and the paging is tested on constructed answers |
+| `get_stack_health` | `audiobookshelf` | The connection test with a key (`/api/libraries`) | Only the unauthenticated `/status` (2.38.0) is recorded |
 
 ## The audit trail
 

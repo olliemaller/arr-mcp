@@ -13,6 +13,7 @@ import { listInstances } from '../src/config/instances.ts';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadConfig } from '../src/config/load.ts';
+import { resolveSecrets } from '../src/config/secretSources.ts';
 import type { Config, ServiceId } from '../src/config/schema.ts';
 import {
     apiKeyHeader,
@@ -46,6 +47,7 @@ import {
 } from './lib/lidarrCapture.ts';
 import { anonymiseDispatcharr } from './lib/dispatcharrCapture.ts';
 import { anonymiseGrimmory } from './lib/grimmoryCapture.ts';
+import { anonymiseAudiobookshelf } from './lib/audiobookshelfCapture.ts';
 import { anonymiseShelfmarkConfig, anonymiseShelfmarkHistory, anonymiseShelfmarkReleases, anonymiseShelfmarkSearch, anonymiseShelfmarkSnapshot, anonymiseShelfmarkStatus } from './lib/shelfmarkCapture.ts';
 import {
     anonymiseArrLog,
@@ -1543,6 +1545,22 @@ const ENDPOINTS: Record<ServiceId, Endpoint[]> = {
         { name: 'm3u-accounts', path: '/api/m3u/accounts/', anonymise: anonymiseDispatcharr },
         { name: 'epg-sources', path: '/api/epg/sources/', anonymise: anonymiseDispatcharr }
     ],
+    // An API key as a Bearer token, acting as a user that can only read. Never captured: /api/me
+    // (the account's name and settings). Scrubbed in lib/audiobookshelfCapture.ts: items carry folder paths.
+    audiobookshelf: [
+        { name: 'status', path: '/status' },
+        { name: 'libraries', path: '/api/libraries', anonymise: anonymiseAudiobookshelf },
+        {
+            name: 'library-items',
+            // The first book library's first page, minified, as listLibrary reads it.
+            path: captured => {
+                const libs = (captured.get('libraries') as { libraries?: { id?: unknown; mediaType?: unknown }[] } | undefined)?.libraries ?? [];
+                const id = libs.find(l => l.mediaType === 'book')?.id;
+                return typeof id === 'string' ? `/api/libraries/${encodeURIComponent(id)}/items?limit=3&page=0&minified=1` : undefined;
+            },
+            anonymise: anonymiseAudiobookshelf
+        }
+    ],
     // Behind a login that grimmorySession does once. Never captured: /api/v1/users/me (the account's
     // email) and /api/v1/app/libraries (answers 500 at v3.5.0). The audit log is admin only. Scrubbed
     // in lib/grimmoryCapture.ts.
@@ -1787,7 +1805,7 @@ function strategyFor(id: ServiceId, service: NonNullable<Config['services'][Serv
     if (id === 'plex') return plexToken(key);
     if (id === 'sabnzbd') return queryParamKey('apikey', key);
     if (id === 'bazarr') return apiKeyHeader('X-API-KEY', key);
-    if (id === 'reclaimerr') return apiKeyHeader('Authorization', `Bearer ${key}`);
+    if (id === 'reclaimerr' || id === 'audiobookshelf') return apiKeyHeader('Authorization', `Bearer ${key}`);
     if (id === 'dispatcharr') return apiKeyHeader('X-API-Key', key);
     return apiKeyHeader('X-Api-Key', key);
 }
@@ -1809,7 +1827,9 @@ const only = parseServiceFilter(process.argv.slice(2));
 const configDir = process.env.ARR_MCP_CAPTURE_CONFIG ?? './config';
 // `persist: false` — capturing fixtures reads the user's config; it must never
 // write to the file holding their credentials.
-const { config } = await loadConfig(configDir, { persist: false });
+// Resolved, so `password_file` and `${NAME}` work here as they do in the
+// server, and the leak gate below checks the real values rather than the references.
+const config = resolveSecrets((await loadConfig(configDir, { persist: false })).config);
 const secrets = secretsOf(config);
 const hosts = hostsOf(config);
 

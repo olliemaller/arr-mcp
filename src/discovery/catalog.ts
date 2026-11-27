@@ -226,6 +226,16 @@ export const CATALOG: readonly CatalogEntry[] = [
         }
     },
     {
+        type: 'audiobookshelf',
+        port: 13378,
+        containerNames: ['audiobookshelf'],
+        path: '/status',
+        identify: r => {
+            const o = jsonObject(r);
+            return o?.app === 'audiobookshelf' ? matched(nonEmptyString(o.serverVersion) ? o.serverVersion : undefined) : undefined;
+        }
+    },
+    {
         type: 'grimmory',
         port: 6060,
         containerNames: ['grimmory'],

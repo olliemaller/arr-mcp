@@ -91,7 +91,9 @@ export const ICONS: Record<ServiceId, string> = {
     // An open book: the category is books.
     shelfmark: draw('<path d="M12 7c-2-2-5-2.5-9-2.5v14c4 0 7 .5 9 2.5 2-2 5-2.5 9-2.5v-14c-4 0-7 .5-9 2.5Z"/><path d="M12 7v14"/>'),
     // An open book on a shelf: the category is a book library.
-    grimmory: draw('<path d="M12 4c-1.5-1.5-3.5-2-6.5-2v11c3 0 5 .5 6.5 2 1.5-1.5 3.5-2 6.5-2V2c-3 0-5 .5-6.5 2Z"/><path d="M12 4v11"/><path d="M3 18.5h18"/><path d="M5 22v-3.5M19 22v-3.5"/>')
+    grimmory: draw('<path d="M12 4c-1.5-1.5-3.5-2-6.5-2v11c3 0 5 .5 6.5 2 1.5-1.5 3.5-2 6.5-2V2c-3 0-5 .5-6.5 2Z"/><path d="M12 4v11"/><path d="M3 18.5h18"/><path d="M5 22v-3.5M19 22v-3.5"/>'),
+    // A book with sound coming off it: the category is an audiobook library.
+    audiobookshelf: draw('<path d="M4 4.5h8.5a2 2 0 0 1 2 2V20a1.5 1.5 0 0 0-1.5-1.5H4z"/><path d="M18 9a4 4 0 0 1 0 6M20.5 6.5a7.5 7.5 0 0 1 0 11"/>')
 };
 
 /**

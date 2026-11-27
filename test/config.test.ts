@@ -639,6 +639,20 @@ describe('dispatcharr', () => {
     });
 });
 
+describe('audiobookshelf', () => {
+    const url = 'http://audiobookshelf:13378';
+
+    it('takes an api_key, and reads write permissions as off', () => {
+        const parsed = ConfigSchema.parse({ auth: AUTH, services: { audiobookshelf: { url, api_key: 'k', permissions: { safe_write: true, destructive: true } } } });
+        expect(parsed.services.audiobookshelf).toMatchObject({ api_key: 'k', permissions: { safe_write: false, destructive: false } });
+    });
+
+    it('refuses a block without a key, and a list', () => {
+        expect(ConfigSchema.safeParse({ auth: AUTH, services: { audiobookshelf: { url } } }).success).toBe(false);
+        expect(() => ConfigSchema.parse({ auth: AUTH, services: { audiobookshelf: [{ url, api_key: 'k' }] } })).toThrow(/single block/);
+    });
+});
+
 describe('reclaimerr', () => {
     it('reads write permissions on reclaimerr as off, since nothing writes to it', () => {
         const parsed = ConfigSchema.parse({

@@ -109,7 +109,7 @@ What `kind` means, and which services hold it. A `kind` field offers only the ki
 | `movie` | Radarr |
 | `series` | Sonarr, Whisparr |
 | `artist` | Lidarr |
-| `book` | Shelfmark, Grimmory |
+| `book` | Shelfmark, Grimmory, Audiobookshelf |
 <!-- tool-map:end -->
 
 ## Common routes
@@ -1103,6 +1103,8 @@ in `failures` rather than here. Jellyfin's and Emby's real logs are plain-text
 files, and Dispatcharr and Profilarr have no log to read, so none of the four
 appears here.
 
+**Unverified live** (Audiobookshelf): the connection test with a key; only the unauthenticated `/status` has been recorded.
+
 ## `get_library`
 
 Each parameter is described in one sentence in the tool list. The detail
@@ -1406,6 +1408,18 @@ so its files count as on disk. `search_now` defaults to `false` with `path`.
 The preview warns when the folder name disagrees with the lookup: a
 `tmdb-`/`tvdb-` id in the name that is not the one given, a year in parentheses
 that differs, or a name that shares nothing with the title.
+
+### Audiobooks in Audiobookshelf
+
+With Audiobookshelf configured, its book libraries join the `book` rows: an
+audiobook carries `acquisition.service: "audiobookshelf"`, its library under
+`library`, and `has_file: false` when Audiobookshelf marks it missing or it has
+no audio or ebook file. Like a Grimmory book it carries no external id, so it
+never merges, and its `presence` is `unknown`. `library` filters by the
+Audiobookshelf library's name. A failed read is `audiobookshelf` in `degraded`
+and is never offered as why a film or series was not found.
+
+**Unverified live** (Audiobookshelf): the library list and the item pages behind the `book` rows; only the unauthenticated `/status` has been recorded.
 
 ## `get_playback`
 

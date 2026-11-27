@@ -1,6 +1,7 @@
 import { listInstances, type ServiceInstance } from '../config/instances.ts';
 import type { Config } from '../config/schema.ts';
 import { resolveSecrets } from '../config/secretSources.ts';
+import { AudiobookshelfAdapter } from './audiobookshelf.ts';
 import { BazarrAdapter } from './bazarr.ts';
 import { CleanuparrAdapter } from './cleanuparr.ts';
 import { DispatcharrAdapter } from './dispatcharr.ts';
@@ -58,6 +59,8 @@ export function buildAdapters(config: Config): ServiceAdapter[] {
 
 function buildAdapter(instance: ServiceInstance): ServiceAdapter {
     switch (instance.type) {
+        case 'audiobookshelf':
+            return new AudiobookshelfAdapter(instance.config);
         case 'bazarr':
             return new BazarrAdapter(instance.config);
         case 'cleanuparr':
