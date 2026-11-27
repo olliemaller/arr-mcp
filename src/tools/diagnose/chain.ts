@@ -3,7 +3,7 @@ import { servicesOnly } from '../../core/gather.ts';
 import { instantOf } from '../../core/instant.ts';
 import { article } from '../../core/labels.ts';
 import type { NextStep } from '../../core/nextStep.ts';
-import { unfenced } from '../../core/titleMatch.ts';
+import { literalTitle, unfenced } from '../../core/titleMatch.ts';
 import { ARR_KIND, ARR_NAMES, SEERR_ARR, seerrMediaType, type MergedItem } from '../../core/resolver.ts';
 import { fenceText } from '../../core/fence.ts';
 import { isLidarrRow, PENDING_STATUSES, usenetRerun } from '../../services/arrRecord.ts';
@@ -86,6 +86,14 @@ export type Evidence = {
     mediaServer?: string;
     /** Whether that media server can report scan state at all. */
     scanCapable: boolean;
+    /** Set when `mediaServer` is a music player arr-mcp cannot start a scan on (Navidrome), so no trigger_scan is offered. */
+    scanByHand?: true;
+    /**
+     * The album titles the music player lists under this artist, raw. Read
+     * only for an artist with tracks, beside `albums`; a failed read is
+     * `<player>:albums` in `degraded`.
+     */
+    playerAlbums?: string[];
     /** Cleanuparr events for this item's downloads, newest first. null: not configured. */
     cleanuparr: HistoryEntry[] | null | undefined;
     /** Cleanuparr's standing strikes on this item's downloads. null: not configured; undefined: could not look. */
@@ -1128,6 +1136,17 @@ function libraryStep(ev: Evidence, item: MergedItem): Step {
         .filter(([id]) => id !== server)
         .map(([id, p]) => (p?.present === true ? ` Also in the ${id} library.` : ` Not in the ${id} library.`))
         .join('');
+    const unlisted = isArtist ? albumsNotListed(ev) : [];
+    if (unlisted.length > 0) {
+        const names = unlisted.slice(0, 5).map(a => a.title).join(', ');
+        const more = unlisted.length > 5 ? ` and ${unlisted.length - 5} more` : '';
+        return {
+            stage: 'library',
+            service: server,
+            status: 'blocked',
+            detail: `${item.acquisition?.service ?? 'Lidarr'} has files for ${unlisted.length} album(s) ${server} does not list under this artist: ${names}${more}. Albums are matched by title.${others}`
+        };
+    }
     if (item.presence === 'both' || item.presence === 'jellyfin_only') {
         return { stage: 'library', service: server, status: 'ok', detail: `Present in the ${server} library.${others}` };
     }
@@ -1140,6 +1159,17 @@ function libraryStep(ev: Evidence, item: MergedItem): Step {
         };
     }
     return SKIPPED('library', `Not in ${server}, and there is no file for it to have found.${others}`);
+}
+
+/**
+ * Lidarr's albums with files that the music player lists no album of the same
+ * title for. By title because the two hold different MusicBrainz ids for an
+ * album: Lidarr the release group, the Subsonic API the release.
+ */
+function albumsNotListed(ev: Evidence): AlbumSummary[] {
+    if (ev.albums === undefined || ev.playerAlbums === undefined) return [];
+    const listed = new Set(ev.playerAlbums.map(literalTitle));
+    return ev.albums.list.filter(a => a.hasFile && !listed.has(literalTitle(a.title)));
 }
 
 function scanStep(ev: Evidence): Step {
@@ -1284,9 +1314,9 @@ function managedRemedy(ev: Evidence, item: MergedItem, step: Step, unreadArrs: r
 /** `library`/`scan` remedies name the configured media server, so unlike the
  *  rest of `REMEDIES` they can't be static strings. Only called once a
  *  blocking `library`/`scan` step has proven `ev.mediaServer` is set. */
-function libraryRemedy(stage: 'library' | 'scan', server: string): string {
+function libraryRemedy(stage: 'library' | 'scan', server: string, byHand = false): string {
     return stage === 'library'
-        ? `Trigger ${article(server)} ${server} library scan. If it still does not appear, check the path is inside ${article(server)} ${server} library and readable by it.`
+        ? `${byHand ? `Start a library scan in ${server} itself (arr-mcp cannot start one there).` : `Trigger ${article(server)} ${server} library scan.`} If it still does not appear, check the path is inside ${article(server)} ${server} library and readable by it.`
         : `Wait for the running scan, or start one from ${server}’s dashboard.`;
 }
 
@@ -1753,7 +1783,7 @@ export function buildChain(query: string, ev: Evidence, byWords: boolean): Diagn
                         byStage.get('indexers')?.status ?? 'unknown'
                     ))
               : blocking.stage === 'library' || blocking.stage === 'scan'
-                ? libraryRemedy(blocking.stage, ev.mediaServer as string)
+                ? libraryRemedy(blocking.stage, ev.mediaServer as string, ev.scanByHand === true)
                 : REMEDIES[blocking.stage];
     // The verdict's own stage is never also the aside (it is already the
     // headline), so `aside` only ever adds information here for a
@@ -1865,7 +1895,7 @@ function nextStepsFor(
         case 'queue':
             return queueNext === undefined ? [] : [queueNext];
         case 'library':
-            return ev.mediaServer === undefined
+            return ev.mediaServer === undefined || ev.scanByHand === true
                 ? []
                 : [
                       {

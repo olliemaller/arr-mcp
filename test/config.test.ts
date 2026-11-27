@@ -639,6 +639,28 @@ describe('dispatcharr', () => {
     });
 });
 
+describe('navidrome', () => {
+    const url = 'http://navidrome:4533';
+
+    it('takes a username and password, and reads write permissions as off', () => {
+        const parsed = ConfigSchema.parse({
+            auth: AUTH,
+            services: { navidrome: { url, username: 'arr-mcp', password: 'pw', permissions: { safe_write: true, destructive: true } } }
+        });
+        expect(parsed.services.navidrome).toMatchObject({ username: 'arr-mcp', password: 'pw', permissions: { safe_write: false, destructive: false } });
+    });
+
+    it('takes the password from a file', () => {
+        const parsed = ConfigSchema.parse({ auth: AUTH, services: { navidrome: { url, username: 'arr-mcp', password_file: '/run/secrets/navidrome' } } });
+        expect(parsed.services.navidrome).toMatchObject({ password_file: '/run/secrets/navidrome' });
+    });
+
+    it('refuses a block without a password, and a list', () => {
+        expect(ConfigSchema.safeParse({ auth: AUTH, services: { navidrome: { url, username: 'arr-mcp' } } }).success).toBe(false);
+        expect(() => ConfigSchema.parse({ auth: AUTH, services: { navidrome: [{ url, username: 'u', password: 'p' }] } })).toThrow(/single block/);
+    });
+});
+
 describe('reclaimerr', () => {
     it('reads write permissions on reclaimerr as off, since nothing writes to it', () => {
         const parsed = ConfigSchema.parse({

@@ -20,6 +20,7 @@ const NAMES: ReadonlyArray<readonly [ServiceId, string]> = [
     ['jellyfin', 'Jellyfin'],
     ['emby', 'Emby'],
     ['plex', 'Plex'],
+    ['navidrome', 'Navidrome'],
     ['sabnzbd', 'SABnzbd'],
     ['nzbget', 'NZBGet'],
     ['transmission', 'Transmission'],

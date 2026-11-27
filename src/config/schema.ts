@@ -22,7 +22,8 @@ export const ServiceIdSchema = z.enum([
     'reclaimerr',
     'dispatcharr',
     'shelfmark',
-    'grimmory'
+    'grimmory',
+    'navidrome'
 ]);
 export type ServiceId = z.infer<typeof ServiceIdSchema>;
 
@@ -89,13 +90,17 @@ export type KeyedServiceConfig = z.infer<typeof KeyedServiceSchema>;
 const OptionalKeyServiceSchema = z.strictObject({ ...BaseServiceShape, api_key: ApiKeyShape.api_key.optional() });
 type OptionalKeyServiceConfig = z.infer<typeof OptionalKeyServiceSchema>;
 
-/** Grimmory has no API key: it signs in with a username and password and gets a JWT back. */
-const GrimmoryServiceSchema = z.strictObject({
+/**
+ * A service with no API key, only a login: Grimmory signs in and gets a JWT
+ * back, and Navidrome's Subsonic API derives a token from the password on
+ * every request.
+ */
+const LoginServiceSchema = z.strictObject({
     ...BaseServiceShape,
     username: z.string().min(1),
     password: z.string().min(1)
 });
-type GrimmoryServiceConfig = z.infer<typeof GrimmoryServiceSchema>;
+type LoginServiceConfig = z.infer<typeof LoginServiceSchema>;
 
 
 /**
@@ -285,7 +290,8 @@ export type ConfigByService = {
     reclaimerr: For<'reclaimerr', KeyedServiceConfig>;
     dispatcharr: For<'dispatcharr', KeyedServiceConfig>;
     shelfmark: For<'shelfmark', OptionalKeyServiceConfig>;
-    grimmory: For<'grimmory', GrimmoryServiceConfig>;
+    grimmory: For<'grimmory', LoginServiceConfig>;
+    navidrome: For<'navidrome', LoginServiceConfig>;
 };
 
 /**
@@ -447,7 +453,10 @@ const SERVICES = {
     // Single only: one Shelfmark holds one download queue and one set of requests.
     shelfmark: single(OptionalKeyServiceSchema),
     // Single only: one Grimmory is the book library, and get_library's book rows need one source.
-    grimmory: single(GrimmoryServiceSchema)
+    grimmory: single(LoginServiceSchema),
+    // Single only: music presence is measured against one music player, as
+    // films and series are against one primary media server.
+    navidrome: readOnly(LoginServiceSchema)
 } satisfies Record<ServiceId, { schema: z.ZodType; traits: ServiceTraits }>;
 
 export const serviceTraits = (type: ServiceId): ServiceTraits => SERVICES[type].traits;

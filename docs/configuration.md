@@ -547,6 +547,41 @@ hours of use.
 Single instance only, because `get_library` needs one book source. Needs
 Grimmory 3.5.0 or newer, the version the adapter was written against.
 
+## Navidrome
+
+```yaml
+services:
+  navidrome:
+    url: http://192.168.1.20:4533
+    username: "arr-mcp"
+    password: "…"
+```
+
+Navidrome is a music player, not a media server, so it takes no media-server
+slot and needs no `default_user`. arr-mcp talks to its Subsonic API (`/rest`),
+never its native `/api`, and signs every request with a salted token made from
+the password, so the password itself is never sent. That token form needs a
+local Navidrome user: an account that logs in through a reverse proxy or an
+external provider cannot use it.
+
+Create an ordinary user for arr-mcp, not an admin. Everything arr-mcp reads is
+open to any user, and nothing it calls writes. Since Navidrome 0.58 a user sees
+only the libraries it is given, so give this one every music library, or
+`get_library` and `diagnose_media` will report the rest as missing.
+
+With a Lidarr configured, Navidrome is the music half of the library:
+`get_library`'s `presence` for an artist, and `diagnose_media`'s library stage
+for one, are measured against Navidrome instead of the primary media server's
+music. For an artist with tracks on disk, `diagnose_media` also compares the
+albums Lidarr has files for with the albums Navidrome lists under that artist,
+by title, and names the ones Navidrome is missing. arr-mcp cannot start a
+Navidrome scan (that needs an admin account), so the remedy says to start one
+in Navidrome.
+
+Read only and single instance, since presence is measured against one music
+player. Needs Navidrome 0.54.1 or newer, the first release whose artist list
+carries the MusicBrainz id the join uses.
+
 ## Several instances of one service
 
 Running an HD and a 4K Radarr side by side is a common setup, and arr-mcp reads

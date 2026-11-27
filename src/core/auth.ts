@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { ServiceError } from './errors.ts';
 import { fenceText } from './fence.ts';
 
@@ -148,6 +148,32 @@ export function queryParamKey(param: string, key: string): AuthStrategy {
         remedy: 'The API key is wrong. Copy it from SABnzbd’s Config → General page.',
         apply(ctx) {
             ctx.url.searchParams.set(param, key);
+        }
+    };
+}
+
+/** The Subsonic API version the token form below needs (1.13.0 and up), and what arr-mcp asks for. */
+const SUBSONIC_API_VERSION = '1.16.1';
+
+/**
+ * The Subsonic API's token authentication, which Navidrome serves on `/rest`:
+ * `t` is the MD5 of the password and a fresh salt `s`, so the password itself
+ * never travels. Like SABnzbd's key it lives in the query string, which is why
+ * `ServiceHttp` keeps full URLs out of error messages. A wrong password still
+ * answers HTTP 200, with a Subsonic error the adapter reads.
+ */
+export function subsonicToken(creds: { username: string; password: string }): AuthStrategy {
+    return {
+        id: 'subsonic-token',
+        remedy: LOGIN_REMEDY,
+        apply(ctx) {
+            const salt = randomBytes(8).toString('hex');
+            ctx.url.searchParams.set('u', creds.username);
+            ctx.url.searchParams.set('t', createHash('md5').update(creds.password + salt).digest('hex'));
+            ctx.url.searchParams.set('s', salt);
+            ctx.url.searchParams.set('v', SUBSONIC_API_VERSION);
+            ctx.url.searchParams.set('c', 'arr-mcp');
+            ctx.url.searchParams.set('f', 'json');
         }
     };
 }

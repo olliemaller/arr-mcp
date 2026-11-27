@@ -226,6 +226,18 @@ export const CATALOG: readonly CatalogEntry[] = [
         }
     },
     {
+        type: 'navidrome',
+        port: 4533,
+        containerNames: ['navidrome'],
+        // Answers without a login: a Subsonic error that still names the server.
+        path: '/rest/ping.view?f=json',
+        identify: r => {
+            const o = asObject(jsonObject(r)?.['subsonic-response']);
+            if (o?.type !== 'navidrome') return undefined;
+            return matched(nonEmptyString(o.serverVersion) ? o.serverVersion.split(' ')[0] : undefined);
+        }
+    },
+    {
         type: 'grimmory',
         port: 6060,
         containerNames: ['grimmory'],

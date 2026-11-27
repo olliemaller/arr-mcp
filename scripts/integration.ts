@@ -32,6 +32,7 @@
  * line — pass or fail — is passed through `redactHosts` first.
  */
 import { loadConfig } from '../src/config/load.ts';
+import { resolveSecrets } from '../src/config/secretSources.ts';
 import { withScriptToken } from './lib/scriptToken.ts';
 import { buildApp } from '../src/app.ts';
 import { WriteAudit } from '../src/core/audit.ts';
@@ -42,6 +43,7 @@ import { ProfilarrAdapter } from '../src/services/profilarr.ts';
 import { CleanuparrAdapter } from '../src/services/cleanuparr.ts';
 import { ReclaimerrAdapter } from '../src/services/reclaimerr.ts';
 import { DispatcharrAdapter } from '../src/services/dispatcharr.ts';
+import { NavidromeAdapter } from '../src/services/navidrome.ts';
 import { ShelfmarkAdapter } from '../src/services/shelfmark.ts';
 import { BOOK_MATCH_THRESHOLD, GrimmoryAdapter } from '../src/services/grimmory.ts';
 import { ServiceError } from '../src/core/errors.ts';
@@ -1104,6 +1106,32 @@ if (config.services?.dispatcharr !== undefined) {
     }
 } else {
     console.log('SKIP dispatcharr — not configured.');
+}
+
+/**
+ * Navidrome, read only: the connection test with the login, the artist list
+ * that music presence joins on, and the album titles of the first artist that
+ * has a MusicBrainz id. Counts only, never names.
+ */
+if (config.services?.navidrome !== undefined) {
+    const started = performance.now();
+    try {
+        const navidrome = new NavidromeAdapter(resolveSecrets(config).services.navidrome as NonNullable<typeof config.services.navidrome>);
+        const connection = await navidrome.testConnection();
+        if (!connection.ok) throw new Error(`${connection.error?.detail ?? 'connection failed'}: ${connection.error?.remedy ?? ''}`);
+        const artists = await navidrome.listMusicLibrary();
+        const withMbid = artists.filter(a => a.ids.mbid !== undefined);
+        const first = withMbid[0]?.playback?.itemId;
+        const albums = first === undefined ? [] : await navidrome.listArtistAlbumTitles(first);
+        const ms = Math.round(performance.now() - started);
+        console.log(`PASS navidrome ${connection.version ?? '?'}: ${artists.length} artist(s), ${withMbid.length} with a MusicBrainz id, ${albums.length} album(s) under the first (${ms}ms)`);
+        passes += 1;
+    } catch (err) {
+        console.error(`FAIL navidrome: ${redactHosts((err as Error).message, hosts)}`);
+        failures += 1;
+    }
+} else {
+    console.log('SKIP navidrome: not configured.');
 }
 
 /**

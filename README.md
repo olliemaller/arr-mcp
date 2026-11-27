@@ -6,7 +6,7 @@
 
 ### Talk to your entire media stack. One server, one endpoint, one conversation.
 
-**Radarr · Sonarr · Whisparr · Lidarr · Prowlarr · Bazarr · Jellyfin · Emby · Plex · Seerr · SABnzbd · NZBGet · Transmission · qBittorrent · Profilarr · Cleanuparr · Reclaimerr · Dispatcharr · Shelfmark · Grimmory**
+**Radarr · Sonarr · Whisparr · Lidarr · Prowlarr · Bazarr · Jellyfin · Emby · Plex · Seerr · SABnzbd · NZBGet · Transmission · qBittorrent · Profilarr · Cleanuparr · Reclaimerr · Dispatcharr · Shelfmark · Grimmory · Navidrome**
 
 [![Release](https://img.shields.io/github/v/release/bardesss/arr-mcp?style=flat-square&color=6f42c1)](https://github.com/bardesss/arr-mcp/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/bardesss/arr-mcp/release.yml?branch=main&label=build&style=flat-square)](https://github.com/bardesss/arr-mcp/actions)
@@ -108,7 +108,7 @@ username and a password of at least 12 characters.
 > page first owns the instance, and it holds every service's API key.
 
 **3. Add your services**: **Add a service**, paste its URL and API key (for Plex,
-its `X-Plex-Token`; for NZBGet, Transmission, qBittorrent and Grimmory, its username and password; a Shelfmark with no authentication needs no key), save. It applies immediately; there is
+its `X-Plex-Token`; for NZBGet, Transmission, qBittorrent, Grimmory and Navidrome, its username and password; a Shelfmark with no authentication needs no key), save. It applies immediately; there is
 no restart. Configure only what you run. **Find services**, next to it, looks
 for them first: this host on each service's default port, the usual container
 names, and, if you ask for it, a sweep of the address range around you. It
@@ -239,11 +239,11 @@ stack and everything that is trimmed.
 
 - At least one supported service, LAN-reachable: Radarr 4.0+, Sonarr 4.0+,
   Whisparr 2.x (V2 only, not Eros), Prowlarr 1.0+, Bazarr 1.4+, Jellyfin 10.9+, Emby 4.9.1.80+, Plex Media Server (no minimum enforced; verified on 1.43),
-  Seerr 1.0+, SABnzbd 3.0+, NZBGet 21.0+, Transmission 3.0+, qBittorrent 4.1+, Profilarr 2.2.0+, Cleanuparr 2.10.0+, Reclaimerr 0.6.0+, Dispatcharr 0.33.0+, Shelfmark 1.5.0+, Grimmory 3.5.0+
+  Seerr 1.0+, SABnzbd 3.0+, NZBGet 21.0+, Transmission 3.0+, qBittorrent 4.1+, Profilarr 2.2.0+, Cleanuparr 2.10.0+, Reclaimerr 0.6.0+, Dispatcharr 0.33.0+, Shelfmark 1.5.0+, Grimmory 3.5.0+, Navidrome 0.54.1+
 - Lidarr 2.1.3+ for reading, monitoring, adding, changing and deleting artists,
   its queue, its wanted list and calendar, release search, `diagnose_media`,
   `trigger_scan`, `fix_metadata` and `get_stack_health`. Artists join to
-  Jellyfin, Emby and Plex on the MusicBrainz artist id; [Tools](docs/tools.md)
+  Jellyfin, Emby, Plex or Navidrome on the MusicBrainz artist id; [Tools](docs/tools.md)
   says what each tool does with them.
 - Docker, or Node 24+ to run from source
 - An MCP client. Protocol revision `2026-07-28` is the native one; clients on a
@@ -324,7 +324,7 @@ speaks to is free software maintained largely by volunteers: [Radarr](https://ra
 [Bazarr](https://www.bazarr.media), [Jellyfin](https://jellyfin.org),
 [Seerr](https://github.com/seerr-team/seerr), [SABnzbd](https://sabnzbd.org),
 [NZBGet](https://nzbget.com), [Transmission](https://transmissionbt.com), [qBittorrent](https://www.qbittorrent.org),
-[Profilarr](https://github.com/Dictionarry-Hub/profilarr), [Cleanuparr](https://github.com/Cleanuparr/Cleanuparr), [Reclaimerr](https://github.com/jessielw/Reclaimerr), [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr), [Shelfmark](https://github.com/calibrain/shelfmark), [Grimmory](https://github.com/grimmory-tools/grimmory), as are the libraries it is built
+[Profilarr](https://github.com/Dictionarry-Hub/profilarr), [Cleanuparr](https://github.com/Cleanuparr/Cleanuparr), [Reclaimerr](https://github.com/jessielw/Reclaimerr), [Dispatcharr](https://github.com/Dispatcharr/Dispatcharr), [Shelfmark](https://github.com/calibrain/shelfmark), [Grimmory](https://github.com/grimmory-tools/grimmory), [Navidrome](https://github.com/navidrome/navidrome), as are the libraries it is built
 on: [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk),
 [Hono](https://hono.dev), [Zod](https://zod.dev), [Pino](https://getpino.io),
 [Vitest](https://vitest.dev), [yaml](https://eemeli.org/yaml/) and

@@ -7,6 +7,7 @@ import { DispatcharrAdapter } from './dispatcharr.ts';
 import { EmbyAdapter } from './emby.ts';
 import { JellyfinAdapter } from './jellyfin.ts';
 import { LidarrAdapter } from './lidarr.ts';
+import { NavidromeAdapter } from './navidrome.ts';
 import { NzbgetAdapter } from './nzbget.ts';
 import { PlexAdapter } from './plex.ts';
 import { ProfilarrAdapter } from './profilarr.ts';
@@ -70,6 +71,8 @@ function buildAdapter(instance: ServiceInstance): ServiceAdapter {
             return new JellyfinAdapter(instance.config);
         case 'lidarr':
             return new LidarrAdapter(instance.config);
+        case 'navidrome':
+            return new NavidromeAdapter(instance.config);
         case 'nzbget':
             return new NzbgetAdapter(instance.config);
         case 'reclaimerr':

@@ -510,6 +510,95 @@ describe('diagnose', () => {
         expect(d.verdict.certain).toBe(false);
     });
 
+    describe('with a music player (Navidrome)', () => {
+        const MBID = '056e4f3e-d505-4dad-8ec1-d04f521cbb56';
+        const identity = { resolve: async () => ({ id: 'u1', name: 'Someone' }), hasDefaultUser: true } as unknown as IdentityResolver;
+        // The recorded album list, with tracks on disk for every album but Random Access Memories.
+        const albumsWithFiles = (lidarrFixture('album') as Record<string, unknown>[]).map(a => ({
+            ...a,
+            statistics: { ...(a.statistics as object), trackFileCount: a.title === 'Random Access Memories' ? 0 : 10 }
+        }));
+        const player = (titles: () => Promise<string[]>, artists?: () => Promise<IndexInput[]>): ServiceAdapter =>
+            stub('navidrome', {
+                listMusicLibrary:
+                    artists ??
+                    (async () => [
+                        { kind: 'artist', title: fenceText('Daft Punk', { service: 'navidrome', field: 'name' }), ids: { mbid: MBID }, playback: { user: 'navidrome account', itemId: 'ar-1' } }
+                    ]),
+                listArtistAlbumTitles: async (id: string) => {
+                    expect(id).toBe('ar-1');
+                    return titles();
+                }
+            });
+
+        it('names a downloaded album the player does not list, and offers no scan it cannot start', async () => {
+            const adapters = [lidarr(albumsWithFiles, [], 30), player(async () => ['Discovery', 'homework'])];
+            const d = await buildDiagnose({ adapters, library: new LibraryLoader(adapters, undefined) }, { service: 'lidarr', id: '1' });
+
+            const library = d.steps.find(s => s.stage === 'library');
+            expect(library).toMatchObject({ status: 'blocked', service: 'navidrome' });
+            expect(library?.detail).toContain('Human After All');
+            expect(library?.detail).not.toContain('Homework');
+            expect(library?.detail).not.toContain('Random Access Memories');
+            expect(d.verdict.stage).toBe('library');
+            expect(d.verdict.remedy).toContain('in navidrome itself');
+            expect(JSON.stringify(d.verdict.next_steps ?? [])).not.toContain('trigger_scan');
+            expect(d.steps.find(s => s.stage === 'scan')?.status).toBe('skipped');
+        });
+
+        it('is playable when the player lists every album with files', async () => {
+            const adapters = [lidarr(albumsWithFiles, [], 30), player(async () => ['Discovery', 'Human After All', 'Homework'])];
+            const d = await buildDiagnose({ adapters, library: new LibraryLoader(adapters, undefined) }, { service: 'lidarr', id: '1' });
+
+            expect(d.steps.find(s => s.stage === 'library')).toMatchObject({ status: 'ok', service: 'navidrome' });
+            expect(d.verdict.stage).toBe('playable');
+        });
+
+        it('reports the library unknown, not missing, when the player cannot be read', async () => {
+            const down = player(
+                async () => [],
+                async () => {
+                    throw new ServiceError('Unreachable', 'navidrome', 'connection refused');
+                }
+            );
+            const adapters = [lidarr(albumsWithFiles, [], 30), down];
+            const d = await buildDiagnose({ adapters, library: new LibraryLoader(adapters, undefined) }, { service: 'lidarr', id: '1' });
+
+            expect(d.steps.find(s => s.stage === 'library')).toMatchObject({ status: 'unknown', service: 'navidrome' });
+            expect(d.verdict.certain).toBe(false);
+        });
+
+        it('stays out of the verdict when only the album read fails', async () => {
+            const adapters = [
+                lidarr(albumsWithFiles, [], 30),
+                player(async () => {
+                    throw new ServiceError('Unreachable', 'navidrome', 'connection refused');
+                })
+            ];
+            const d = await buildDiagnose({ adapters, library: new LibraryLoader(adapters, undefined) }, { service: 'lidarr', id: '1' });
+
+            expect(d.steps.find(s => s.stage === 'library')?.status).toBe('ok');
+            expect(d.degraded).toContain('navidrome:albums');
+        });
+
+        it('is read in place of the media server’s music', async () => {
+            let serverMusicRead = false;
+            const jellyfin = stub('jellyfin', {
+                listUserLibrary: async () => [],
+                listUserMusic: async () => {
+                    serverMusicRead = true;
+                    return [];
+                }
+            });
+            const adapters = [lidarr(albumsWithFiles, [], 30), jellyfin, player(async () => ['Discovery', 'Human After All', 'Homework'])];
+            const snapshot = await new LibraryLoader(adapters, identity).load();
+
+            expect(serverMusicRead).toBe(false);
+            expect(snapshot.counts['navidrome:music']).toBe(1);
+            expect(snapshot.index.all().find(i => i.kind === 'artist')?.presence).toBe('both');
+        });
+    });
+
     describe('with a media server that reads music', () => {
         const identity = { resolve: async () => ({ id: 'u1', name: 'Someone' }), hasDefaultUser: true } as unknown as IdentityResolver;
         const MBID = '056e4f3e-d505-4dad-8ec1-d04f521cbb56';

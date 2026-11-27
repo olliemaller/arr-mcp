@@ -82,7 +82,11 @@ export const MINIMUM_VERSIONS: Record<ServiceId, string> = {
     // /api/stats is refused on the 404 instead.
     shelfmark: '1.5.0',
     // Written against tag v3.5.0 and captured live on v3.5.0 (2026-11-07).
-    grimmory: '3.5.0'
+    grimmory: '3.5.0',
+    // 0.54.1 is the first release whose getArtists carries `musicBrainzId`
+    // (upstream commit 0a650de), the id music presence joins on. Below it every
+    // artist would read as one Lidarr does not manage. Written against 0.64.2.
+    navidrome: '0.54.1'
 };
 
 /** Digits only; a build suffix such as Transmission's "(838877323f)" is dropped. */

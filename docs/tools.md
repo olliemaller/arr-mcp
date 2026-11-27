@@ -702,6 +702,19 @@ An applied `update_media` that switches a Lidarr artist's metadata profile
 returns a `trigger_scan` of the artist, unless the same call changes the root
 folder with `move_files: false`.
 
+With Navidrome configured beside a Lidarr, an artist's library stage is
+Navidrome's, not the media server's. For an artist with tracks on disk it also
+reads Lidarr's albums and the albums Navidrome lists under that artist, and the
+stage is `blocked` when Lidarr has files for an album Navidrome does not list,
+naming up to five of them. Albums are matched by title, because Lidarr keys an
+album on its MusicBrainz release group and the Subsonic API on the release.
+arr-mcp cannot start a Navidrome scan, so the remedy says to start one there and
+`next_steps` offers no `trigger_scan`. A failed album read shows up as
+`navidrome:albums` in `degraded` and leaves the stage as the artist read put it.
+
+**Unverified live** (Navidrome): the artist list and an artist's album titles; the adapter has only met the live server's unauthenticated ping.
+
+
 ## `get_stack_health`
 
 With more than one instance of a service, each is reported separately. With
@@ -1103,6 +1116,9 @@ in `failures` rather than here. Jellyfin's and Emby's real logs are plain-text
 files, and Dispatcharr and Profilarr have no log to read, so none of the four
 appears here.
 
+**Unverified live** (Navidrome): the connection test with a login; only the unauthenticated ping has been recorded.
+
+
 ## `get_library`
 
 Each parameter is described in one sentence in the tool list. The detail
@@ -1406,6 +1422,18 @@ so its files count as on disk. `search_now` defaults to `false` with `path`.
 The preview warns when the folder name disagrees with the lookup: a
 `tmdb-`/`tvdb-` id in the name that is not the one given, a year in parentheses
 that differs, or a name that shares nothing with the title.
+
+### Music in Navidrome
+
+With a Lidarr and a Navidrome configured, an artist's `presence` is measured
+against Navidrome instead of the primary media server's music libraries, which
+are then not read. Navidrome's artists join to Lidarr's on the MusicBrainz artist
+id. A failed Navidrome read is `navidrome:music` in `degraded`, and every artist
+reads `unknown` rather than `arr_only`. With two media servers, an artist's
+`media_servers` entry is Navidrome's.
+
+**Unverified live** (Navidrome): the artist list behind `presence`.
+
 
 ## `get_playback`
 

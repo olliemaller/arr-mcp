@@ -890,7 +890,7 @@ describe('the add dialog', () => {
 
         for (const field of ['username', 'password']) {
             const only = new RegExp(`data-only="([^"]*)"[^>]*>\\s*<label for="add\\.${field}"`).exec(page)?.[1];
-            expect(only?.split(' ').sort()).toEqual(['grimmory', 'nzbget', 'qbittorrent', 'transmission']);
+            expect(only?.split(' ').sort()).toEqual(['grimmory', 'navidrome', 'nzbget', 'qbittorrent', 'transmission']);
         }
     });
 

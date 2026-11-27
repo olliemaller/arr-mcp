@@ -414,6 +414,9 @@ exercise. Where the tool has its own section, the same path carries an
 | `import_download` | `grimmory` | Approving one Bookdrop file (`id`) | Built from Grimmory's OpenAPI spec and mocks; the first real approval is its test |
 | `get_history` | `grimmory` | The `BOOK_UPLOADED` audit row | No upload has been captured, so the shape follows Grimmory's API description |
 | `get_history` | `shelfmark` | The `failed` and `stopped` rows | The live Shelfmark has had no failed or cancelled download; tested on captured bodies with those answers constructed |
+| `get_library` | `navidrome` | The artist list (`getArtists`) behind an artist's `presence` | Written from the Subsonic and OpenSubsonic docs; no account was available to capture with |
+| `diagnose_media` | `navidrome` | The artist list and an artist's album titles (`getArtist`) behind the library stage | Same: only the live server's unauthenticated ping (0.64.2) is recorded |
+| `get_stack_health` | `navidrome` | The connection test with a login (`ping`) | The unauthenticated answer is recorded; the signed-in one is not |
 
 ## The audit trail
 

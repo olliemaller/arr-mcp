@@ -32,7 +32,8 @@ const DISPLAY: Record<ServiceId, string> = {
     reclaimerr: 'Reclaimerr',
     dispatcharr: 'Dispatcharr',
     shelfmark: 'Shelfmark',
-    grimmory: 'Grimmory'
+    grimmory: 'Grimmory',
+    navidrome: 'Navidrome'
 };
 
 const read = (p: string): string => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');

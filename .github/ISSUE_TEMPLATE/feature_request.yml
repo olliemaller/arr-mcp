@@ -72,6 +72,7 @@ body:
         - label: Dispatcharr
         - label: Shelfmark
         - label: Grimmory
+        - label: Navidrome
 
   - type: input
     id: unsupported-service

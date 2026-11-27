@@ -13,6 +13,7 @@ import { listInstances } from '../src/config/instances.ts';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { loadConfig } from '../src/config/load.ts';
+import { resolveSecrets } from '../src/config/secretSources.ts';
 import type { Config, ServiceId } from '../src/config/schema.ts';
 import {
     apiKeyHeader,
@@ -23,6 +24,7 @@ import {
     qbittorrentSession,
     noAuth,
     queryParamKey,
+    subsonicToken,
     transmissionRpc,
     type AuthStrategy
 } from '../src/core/auth.ts';
@@ -46,6 +48,7 @@ import {
 } from './lib/lidarrCapture.ts';
 import { anonymiseDispatcharr } from './lib/dispatcharrCapture.ts';
 import { anonymiseGrimmory } from './lib/grimmoryCapture.ts';
+import { anonymiseNavidrome } from './lib/navidromeCapture.ts';
 import { anonymiseShelfmarkConfig, anonymiseShelfmarkHistory, anonymiseShelfmarkReleases, anonymiseShelfmarkSearch, anonymiseShelfmarkSnapshot, anonymiseShelfmarkStatus } from './lib/shelfmarkCapture.ts';
 import {
     anonymiseArrLog,
@@ -1543,6 +1546,24 @@ const ENDPOINTS: Record<ServiceId, Endpoint[]> = {
         { name: 'm3u-accounts', path: '/api/m3u/accounts/', anonymise: anonymiseDispatcharr },
         { name: 'epg-sources', path: '/api/epg/sources/', anonymise: anonymiseDispatcharr }
     ],
+    // The Subsonic API, token auth on every call. Read as an ordinary account, never an admin.
+    // Scrubbed in lib/navidromeCapture.ts: image URLs carry a signed token.
+    navidrome: [
+        { name: 'ping', path: '/rest/ping' },
+        { name: 'artists', path: '/rest/getArtists', anonymise: anonymiseNavidrome },
+        {
+            name: 'artist',
+            // An artist with a MusicBrainz id and albums: the join and the album titles are what the adapter reads.
+            path: captured => {
+                const index = (captured.get('artists') as { 'subsonic-response'?: { artists?: { index?: { artist?: { id?: unknown; musicBrainzId?: unknown; albumCount?: unknown }[] }[] } } } | undefined)?.[
+                    'subsonic-response'
+                ]?.artists?.index;
+                const artist = (index ?? []).flatMap(i => i.artist ?? []).find(a => typeof a.musicBrainzId === 'string' && a.musicBrainzId !== '' && Number(a.albumCount) > 0);
+                return typeof artist?.id === 'string' ? `/rest/getArtist?id=${encodeURIComponent(artist.id)}` : undefined;
+            },
+            anonymise: anonymiseNavidrome
+        }
+    ],
     // Behind a login that grimmorySession does once. Never captured: /api/v1/users/me (the account's
     // email) and /api/v1/app/libraries (answers 500 at v3.5.0). The audit log is admin only. Scrubbed
     // in lib/grimmoryCapture.ts.
@@ -1781,6 +1802,10 @@ function strategyFor(id: ServiceId, service: NonNullable<Config['services'][Serv
         const g = service as { url: string; timeout_ms: number; username: string; password: string };
         return grimmorySession({ id, url: g.url, timeoutMs: g.timeout_ms, username: g.username, password: g.password });
     }
+    if (id === 'navidrome') {
+        const n = service as { username: string; password: string };
+        return subsonicToken({ username: n.username, password: n.password });
+    }
     if (id === 'shelfmark' && (service as { api_key?: string }).api_key === undefined) return noAuth;
     const key = (service as { api_key: string }).api_key;
     if (id === 'jellyfin' || id === 'emby') return embyToken(key, (id === 'emby' ? EMBY : JELLYFIN).apiKeys);
@@ -1809,7 +1834,9 @@ const only = parseServiceFilter(process.argv.slice(2));
 const configDir = process.env.ARR_MCP_CAPTURE_CONFIG ?? './config';
 // `persist: false` — capturing fixtures reads the user's config; it must never
 // write to the file holding their credentials.
-const { config } = await loadConfig(configDir, { persist: false });
+// Resolved, so `password_file` and `${NAME}` work here as they do in the
+// server, and the leak gate below checks the real values rather than the references.
+const config = resolveSecrets((await loadConfig(configDir, { persist: false })).config);
 const secrets = secretsOf(config);
 const hosts = hostsOf(config);
 

@@ -9,6 +9,7 @@ import type { ImdbDataset } from '../metadata/imdbDataset.ts';
 import {
     NO_MEDIA_SERVER_NOTE,
     hasLibrary,
+    hasMusicLibrary,
     hasUserLibrary,
     hasUserMusic,
     hasUserSeasons,
@@ -262,9 +263,14 @@ export class LibraryLoader {
         // so the media server's whole music collection would arrive as
         // `jellyfin_only`. That inflates the summary and answers "what does no
         // *arr manage?" with every artist the server holds.
-        const music = this.#adapters.some(a => a.type === 'lidarr')
-            ? this.#adapters.filter(hasUserMusic).find(isPrimary)
-            : undefined;
+        //
+        // A music player (Navidrome) is the music half in place of the media
+        // server's: presence needs one counterparty, and an operator who runs a
+        // music player plays the music there. It needs no user.
+        const lidarr = this.#adapters.some(a => a.type === 'lidarr');
+        const player = lidarr ? this.#adapters.find(hasMusicLibrary) : undefined;
+        const music = lidarr && player === undefined ? this.#adapters.filter(hasUserMusic).find(isPrimary) : undefined;
+        if (player !== undefined) sources.push({ id: `${player.id}:music`, fetch: () => player.listMusicLibrary() });
         if (music !== undefined) {
             sources.push({
                 id: `${music.id}:music`,
@@ -329,7 +335,8 @@ export class LibraryLoader {
         // not in `degraded`, covering a fetch failure and the synthetic
         // no-user-resolved rejection alike).
         const playbackGathered = mediaServer !== undefined && !degraded.includes(mediaServer.id);
-        const musicGathered = music !== undefined && !degraded.includes(`${music.id}:music`);
+        const musicFrom = player ?? music;
+        const musicGathered = musicFrom !== undefined && !degraded.includes(`${musicFrom.id}:music`);
 
         // Enriched *before* the merge: the index hands the same objects to
         // `all()` and to its key map, so replacing them afterwards would have
@@ -378,8 +385,9 @@ export class LibraryLoader {
                 const isMusic = item.kind === 'artist';
                 const gathered = isMusic ? musicGathered : playbackGathered;
                 const servers: Record<string, MediaServerPresence> = {};
-                if (gathered && mediaServer !== undefined) {
-                    servers[mediaServer.id] = item.playback === undefined ? { present: false } : presenceOf(item);
+                const from = isMusic ? musicFrom : mediaServer;
+                if (gathered && from !== undefined) {
+                    servers[from.id] = item.playback === undefined ? { present: false } : presenceOf(item);
                 }
                 // No secondary comparison for music: `secondaryIndex` is built
                 // from `listUserLibrary`, which has no music in it, so asking it

@@ -2390,6 +2390,26 @@ export const hasUserMusic = (a: ServiceAdapter): a is ServiceAdapter & UserMusic
     typeof (a as Partial<UserMusicCapable>).listUserMusic === 'function';
 
 /**
+ * A music player that is not a media server: Navidrome. It holds music only,
+ * so it implements none of `MediaServerAdapter` and takes no media-server
+ * slot, and it is read as the one account it signs in as, so it needs no user.
+ *
+ * With a Lidarr configured, it is the music half of a library build in place
+ * of the primary media server's `listUserMusic`: `presence` needs a single
+ * counterparty, and an operator who runs a music player beside a media
+ * server plays the music there.
+ */
+export interface MusicLibraryCapable {
+    /** Every artist, as `artist` rows that join to Lidarr on the MusicBrainz artist id. `playback.itemId` is the player's own artist id. */
+    listMusicLibrary(): Promise<IndexInput[]>;
+    /** The titles of the albums the player lists under one of its artists, raw: for matching only, never printed. */
+    listArtistAlbumTitles(artistId: string): Promise<string[]>;
+}
+
+export const hasMusicLibrary = (a: ServiceAdapter): a is ServiceAdapter & MusicLibraryCapable =>
+    typeof (a as Partial<MusicLibraryCapable>).listMusicLibrary === 'function';
+
+/**
  * Separate from LibraryCapable because Jellyfin's half is per-user:
  * watch state does not exist without a user, and a shared signature would let
  * a caller forget to supply one.

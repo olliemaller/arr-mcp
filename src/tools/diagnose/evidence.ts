@@ -12,6 +12,7 @@ import {
     hasHistory,
     hasIndexers,
     hasMediaDetails,
+    hasMusicLibrary,
     hasQueue,
     hasRequestLookup,
     hasRequests,
@@ -377,11 +378,14 @@ export async function collectEvidence(deps: DiagnoseDeps, target: DiagnoseTarget
         const mediaServerAdapter = deps.adapters.find(
             a => hasUserLibrary(a) && (deps.primaryMediaServer === undefined || a.id === deps.primaryMediaServer)
         );
-        const mediaServer = mediaServerAdapter?.id;
+        // An artist's library is the music player's when one is configured, as
+        // `LibraryLoader` reads it: that is where its presence came from.
+        const player = isArtist && deps.adapters.some(a => a.type === 'lidarr') ? deps.adapters.find(hasMusicLibrary) : undefined;
+        const mediaServer = player?.id ?? mediaServerAdapter?.id;
         // Separate from the line above: a media server that reads a library but cannot
         // report a scan makes `scanStep` skip without making `libraryStep` skip too.
         const scanAdapter =
-            mediaServerAdapter !== undefined && hasScanState(mediaServerAdapter) ? mediaServerAdapter : undefined;
+            player === undefined && mediaServerAdapter !== undefined && hasScanState(mediaServerAdapter) ? mediaServerAdapter : undefined;
 
         // A miss is answered from the library and the download history, so nothing
         // else is read for it: an unreachable Seerr, queue or indexer must not cost
@@ -483,7 +487,12 @@ export async function collectEvidence(deps: DiagnoseDeps, target: DiagnoseTarget
         // so the chain needs to know whether any album is. Two requests (the artist
         // and its album list), for an artist with no tracks only. Source-scoped when
         // it fails, like the history read: it shapes the next step, not the verdict.
-        const albumsId = isArtist && item?.acquisition?.hasFile === false ? item.acquisition.id : undefined;
+        //
+        // With a music player, an artist with tracks has its albums read too,
+        // with the player's, so the library stage can name a downloaded album the
+        // player does not list: the artist row alone cannot show one.
+        const playerArtistId = player === undefined || item?.acquisition?.hasFile !== true ? undefined : item.playback?.itemId;
+        const albumsId = isArtist && (item?.acquisition?.hasFile === false || playerArtistId !== undefined) ? item?.acquisition?.id : undefined;
         const albumsAdapter = albumsId === undefined ? undefined : deps.adapters.find(a => a.id === item?.acquisition?.service);
         const albumsP: Promise<Evidence['albums']> =
             albumsId === undefined || albumsAdapter === undefined || !hasMediaDetails(albumsAdapter)
@@ -492,14 +501,20 @@ export async function collectEvidence(deps: DiagnoseDeps, target: DiagnoseTarget
                       albumsAdapter.getMediaDetails(albumsId, { includeEpisodes: true, episodeLimit: 500 })
                   ).then(details => (details?.albums === undefined ? undefined : { list: details.albums, truncated: details.albumsTruncated === true }));
 
-        const [requests, queueGathered, rejections, indexers, scan, subtitles, albums] = await Promise.all([
+        const playerAlbumsP: Promise<string[] | undefined> =
+            player === undefined || playerArtistId === undefined
+                ? Promise.resolve(undefined)
+                : probe(`${player.id}:albums`, degraded, () => player.listArtistAlbumTitles(playerArtistId));
+
+        const [requests, queueGathered, rejections, indexers, scan, subtitles, albums, playerAlbums] = await Promise.all([
             requestsP,
             queueP,
             rejectionsP,
             indexersP,
             scanP,
             subtitlesP,
-            albumsP
+            albumsP,
+            playerAlbumsP
         ]);
 
         let queue: Evidence['queue'];
@@ -639,6 +654,8 @@ export async function collectEvidence(deps: DiagnoseDeps, target: DiagnoseTarget
             ...(indexers === undefined ? {} : { indexers }),
             scan,
             ...(mediaServer === undefined ? {} : { mediaServer }),
+            ...(player === undefined ? {} : { scanByHand: true as const }),
+            ...(playerAlbums === undefined ? {} : { playerAlbums }),
             scanCapable: scanAdapter !== undefined,
             cleanuparr,
             strikes,
