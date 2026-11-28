@@ -996,7 +996,10 @@ With SuggestArr configured, its findings join the failing checks:
 | Every job is disabled, so nothing is requested automatically | warning |
 | Suggestions it could not file in Seerr (administrator key only) | warning |
 
-At `full`, `automation` says what it requests on its own: each job with its
+At `full`, `automation` says what it requests on its own. `jobs` is a window
+of the jobs, enabled ones first, cut to `limit` with `total` counting them all;
+`enabled` counts the enabled jobs and those whose last run failed, over every
+job. Each job has its
 `type`, `enabled`, `schedule` (`daily` or a cron expression), `maxResults`,
 `maxSimilarMovie` and `maxSimilarTv` (requests per watched title), and
 `maxRequestsPerUser` with `requestLimitWindowHours` when that guardrail is on.

@@ -100,9 +100,9 @@ describe('SuggestarrAdapter', () => {
     });
 
     it('reads each job’s limits, and leaves out the ones it takes from the global setting', async () => {
-        const overview = await new SuggestarrAdapter(config, stub(routes())).readAutomationOverview();
+        const overview = await new SuggestarrAdapter(config, stub(routes())).readAutomationOverview(50);
         expect(overview.requests).toEqual({ today: 0, thisWeek: 8, thisMonth: 8, total: 8 });
-        const byName = new Map(overview.jobs.map(j => [j.name, j]));
+        const byName = new Map(overview.jobs.items.map(j => [j.name, j]));
         const defaults = [...byName.entries()].find(([name]) => name.includes('Default Automation'))?.[1];
         const custom = [...byName.entries()].find(([name]) => name.includes('Automatic Recommendations'))?.[1];
         expect(defaults).toMatchObject({ enabled: true, schedule: '0 0 * * *', maxResults: 20, maxSimilarMovie: 5, maxSimilarTv: 2 });
@@ -111,11 +111,28 @@ describe('SuggestarrAdapter', () => {
         expect(custom?.maxSimilarMovie).toBeUndefined();
         // max_requests_per_user 0 is the guardrail switched off.
         expect(custom?.maxRequestsPerUser).toBeUndefined();
-        expect(automationLine(overview)).toContain('up to 5 film(s) and 2 series per watched title');
+        expect(automationLine(overview)).toBe(' suggestarr: 2 of 2 job(s) enabled, 8 request(s) this week.');
+    });
+
+    it('cuts the jobs to the limit, enabled first, and still counts them all', async () => {
+        const jobs = fixture<{ data: Record<string, unknown>[] }>('jobs');
+        const mixed = { ...jobs, data: jobs.data.map((j, i) => ({ ...j, enabled: i === 1 })) };
+        const overview = await new SuggestarrAdapter(config, stub(routes({ '/api/v1/jobs': mixed }))).readAutomationOverview(1);
+        expect(overview.jobs.items).toHaveLength(1);
+        expect(overview.jobs.items[0]?.enabled).toBe(true);
+        expect(overview.jobs.total).toBe(2);
+        expect(overview.enabled).toEqual({ count: 1, lastRunFailed: 0 });
     });
 
     it('says when every job is off', () => {
-        expect(automationLine({ service: 'suggestarr', jobs: [] })).toBe(' suggestarr has no job enabled, so it requests nothing on its own.');
+        expect(automationLine({ service: 'suggestarr', jobs: { items: [], total: 0 }, enabled: { count: 0, lastRunFailed: 0 } })).toBe(
+            ' suggestarr has no job enabled, so it requests nothing on its own.'
+        );
+    });
+
+    it('takes only the health components it knows, so a new field is not a fault', async () => {
+        const health = { ...fixture<object>('health'), version: '3.6.0', timestamp: '2026-11-28T00:00:00Z' };
+        expect(await new SuggestarrAdapter(config, stub(routes({ '/api/health': health }))).getFailedHealthChecks()).toEqual([]);
     });
 
     it('finds why a title was requested, matched on kind and TMDB id', async () => {
@@ -155,12 +172,38 @@ describe('SuggestarrAdapter', () => {
         expect(seen.filter(s => s.startsWith('GET /api/v1/requests?'))).toHaveLength(2);
     });
 
+    it('stops paging once it has the rows it wants', async () => {
+        const rows = fixture<Requests>('requests').data;
+        const seen: string[] = [];
+        const paged = (u: URL) =>
+            u.searchParams.get('page') === '1'
+                ? { data: rows.slice(0, 1), meta: { pages: 2, total: rows.length } }
+                : { data: rows.slice(1), meta: { pages: 2, total: rows.length } };
+        const history = await new SuggestarrAdapter(config, stub(routes({ '/api/v1/requests': paged }), seen)).readHistory({ want: 1 });
+        expect(history.items).toHaveLength(1);
+        // No `since`: the API's own count is exact, not the rows read.
+        expect(history.total).toBe(rows.length);
+        expect(history.atMost).toBeUndefined();
+        expect(seen.filter(s => s.startsWith('GET /api/v1/requests?'))).toHaveLength(1);
+    });
+
+    it('flags the total as a ceiling when a `since` read stops early', async () => {
+        const rows = fixture<Requests>('requests').data;
+        const paged = (u: URL) =>
+            u.searchParams.get('page') === '1'
+                ? { data: rows.slice(0, 1), meta: { pages: 2, total: rows.length } }
+                : { data: rows.slice(1), meta: { pages: 2, total: rows.length } };
+        const history = await new SuggestarrAdapter(config, stub(routes({ '/api/v1/requests': paged }))).readHistory({ want: 1, since: '2000-01-01T00:00:00Z' });
+        expect(history.total).toBe(rows.length);
+        expect(history.atMost).toBe(true);
+    });
+
     it('only ever sends GETs', async () => {
         const seen: string[] = [];
         const adapter = new SuggestarrAdapter(config, stub(routes(), seen));
         await adapter.testConnection();
         await adapter.getFailedHealthChecks();
-        await adapter.readAutomationOverview();
+        await adapter.readAutomationOverview(50);
         await adapter.readHistory({});
         expect(seen.every(s => s.startsWith('GET '))).toBe(true);
     });
@@ -170,7 +213,7 @@ describe('get_stack_health with SuggestArr', () => {
     it('adds the jobs and their limits at full, and a healthy, versionless row', async () => {
         const adapter = new SuggestarrAdapter(config, stub(routes()));
         const full = await buildStackHealth([adapter], { detail: 'full', limit: 50 });
-        expect(full.automation?.jobs).toHaveLength(2);
+        expect(full.automation?.jobs.items).toHaveLength(2);
         expect(full.failures.total).toBe(0);
         expect(full.services[0]).toMatchObject({ ok: true, service: 'suggestarr' });
         expect(full.degraded).toEqual([]);
@@ -189,6 +232,8 @@ describe('a SuggestArr request source', () => {
         expect(originOf('0')).toEqual({ reason: 'ai' });
         expect(originOf('ai_search')).toEqual({ reason: 'ai' });
         expect(originOf('something-new')).toEqual({ reason: 'unknown' });
+        // Prototype members are not tags.
+        for (const name of ['constructor', 'toString', 'valueOf', '__proto__']) expect(originOf(name)).toEqual({ reason: 'unknown' });
     });
 
     it('reads as one sentence', () => {

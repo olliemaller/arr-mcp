@@ -763,12 +763,15 @@ export type AutomationJob = {
 
 export type AutomationOverview = {
     service: string;
-    jobs: AutomationJob[];
+    /** Enabled jobs first, cut to `want`; `total` counts every job. */
+    jobs: Window<AutomationJob>;
+    /** Counted over every job, not only the ones `jobs` returns. */
+    enabled: { count: number; lastRunFailed: number };
     requests?: { today: number; thisWeek: number; thisMonth: number; total: number };
 };
 
 export interface RequestAutomationCapable {
-    readAutomationOverview(): Promise<AutomationOverview>;
+    readAutomationOverview(want: number): Promise<AutomationOverview>;
     /** The newest request this service filed for the title, or `undefined` when it filed none. */
     readRequestOrigin(kind: 'movie' | 'series', tmdbId: number): Promise<RequestOrigin | undefined>;
 }

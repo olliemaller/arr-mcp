@@ -472,7 +472,8 @@ not checked; it was written against v3.5.0.
 `get_stack_health` reports what SuggestArr's own health check says about Seerr,
 TMDB and the *arrs, a job whose last run failed, every job being off, and
 suggestions it could not file in Seerr. At `detail: "full"` it adds `automation`:
-each job, its schedule and request limits, and its last run. `get_history` lists
+its jobs, enabled ones first and cut to `limit`, each with its schedule,
+request limits and last run, and how many are enabled. `get_history` lists
 the requests it filed, and `diagnose_media` says on the request step that
 SuggestArr requested the title and why, matched on the title's TMDB id.
 

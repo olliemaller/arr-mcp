@@ -354,7 +354,7 @@ export async function buildStackHealth(
               ),
         automationSource === undefined || degraded.includes(automationSource.id)
             ? undefined
-            : automationSource.readAutomationOverview().catch((err: unknown) => {
+            : automationSource.readAutomationOverview(opts.limit).catch((err: unknown) => {
                   logger.warn({ service: automationSource.id, err }, 'automation overview read failed; omitting');
                   markDegraded(automationSource.id);
                   return undefined;
@@ -497,22 +497,14 @@ function shownLine(result: Pick<StackHealthResult, 'failures' | 'disks'>): strin
     return parts.length === 0 ? '' : ` ${parts.join(', ')}.`;
 }
 
-/** One sentence on what the automation will request, because its limits are the question it raises. */
+/** One sentence on what the automation will request; the jobs and their limits are in `automation`. */
 export function automationLine(automation: AutomationOverview | undefined): string {
     if (automation === undefined) return '';
-    const on = automation.jobs.filter(j => j.enabled);
-    if (on.length === 0) return ` ${automation.service} has no job enabled, so it requests nothing on its own.`;
-    const jobs = on.map(j => {
-        const caps = [
-            j.maxSimilarMovie === undefined ? undefined : `${j.maxSimilarMovie} film(s)`,
-            j.maxSimilarTv === undefined ? undefined : `${j.maxSimilarTv} series`
-        ].filter(c => c !== undefined);
-        const per = caps.length === 0 ? '' : `, up to ${caps.join(' and ')} per watched title`;
-        const user = j.maxRequestsPerUser === undefined ? '' : `, at most ${j.maxRequestsPerUser} per user in ${j.requestLimitWindowHours ?? 24} h`;
-        const last = j.lastRun === undefined ? '' : `, last run ${j.lastRun.status} with ${j.lastRun.requested} request(s)`;
-        return `${j.name} (${j.schedule}${per}${user}${last})`;
-    });
-    return ` ${automation.service} runs ${jobs.join('; ')}.`;
+    const { count, lastRunFailed } = automation.enabled;
+    if (count === 0) return ` ${automation.service} has no job enabled, so it requests nothing on its own.`;
+    const failed = lastRunFailed === 0 ? '' : `, ${lastRunFailed} whose last run failed`;
+    const week = automation.requests === undefined ? '' : `, ${automation.requests.thisWeek} request(s) this week`;
+    return ` ${automation.service}: ${count} of ${automation.jobs.total} job(s) enabled${failed}${week}.`;
 }
 
 /** One sentence on what is about to go, because that is the question a cleanup service raises. */

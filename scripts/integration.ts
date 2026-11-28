@@ -1093,14 +1093,14 @@ if (config.services?.suggestarr !== undefined) {
         const diagnosis = await suggestarr.testConnection();
         if (!diagnosis.ok) throw new Error(diagnosis.error?.detail ?? 'connection test failed');
         const findings = await suggestarr.getFailedHealthChecks();
-        const overview = await suggestarr.readAutomationOverview();
+        const overview = await suggestarr.readAutomationOverview(20);
         const history = await suggestarr.readHistory({ want: 20 });
         const first = history.items[0]?.externalIds?.tmdb;
         const kind = history.items[0]?.id.startsWith('tv:') ? 'series' : 'movie';
         const origin = first === undefined ? undefined : await suggestarr.readRequestOrigin(kind, first);
         const ms = Math.round(performance.now() - started);
         console.log(
-            `PASS suggestarr: ${findings.length} finding(s), ${overview.jobs.length} job(s), ${history.items.length} request(s), newest ${origin?.reason ?? 'none'} (${ms}ms)`
+            `PASS suggestarr: ${findings.length} finding(s), ${overview.jobs.total} job(s), ${history.items.length} request(s), newest ${origin?.reason ?? 'none'} (${ms}ms)`
         );
         passes += 1;
     } catch (err) {

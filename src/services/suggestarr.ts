@@ -69,6 +69,8 @@ const REASON_TEXT: Record<RequestOrigin['reason'], string> = {
 };
 /** `/api/health` components that are fine; any other value is a fault. */
 const FINE = new Set(['ok', 'not_configured']);
+/** The top-level `/api/health` keys that are components, as on v3.5.0; `arr` holds one per *arr. Any other key (a later `version`, say) is not a fault. */
+const COMPONENTS = ['db', 'seer', 'tmdb', 'llm'] as const;
 
 const PAGE_SIZE = 100;
 const MAX_PAGES = 20;
@@ -80,8 +82,8 @@ const num = (v: unknown): number | undefined => (typeof v === 'number' && Number
 /** `similar` with the watched title's TMDB id, or the job type's tag. */
 export function originOf(source: string | null | undefined): Pick<RequestOrigin, 'reason' | 'sourceTmdbId'> {
     const tag = source ?? '';
-    const tagged = TAGGED[tag];
-    if (tagged !== undefined) return { reason: tagged };
+    // Own keys only: a tag naming a prototype member (`constructor`) is not a reason.
+    if (Object.hasOwn(TAGGED, tag)) return { reason: TAGGED[tag] as RequestOrigin['reason'] };
     return /^\d+$/.test(tag) ? { reason: 'similar', sourceTmdbId: Number(tag) } : { reason: 'unknown' };
 }
 
@@ -134,7 +136,7 @@ export class SuggestarrAdapter implements ServiceAdapter, HealthCheckCapable, Hi
         const out: HealthCheck[] = [];
 
         const components: [string, unknown][] = [
-            ...Object.entries(health).filter(([k]) => k !== 'status' && k !== 'arr'),
+            ...COMPONENTS.map((k): [string, unknown] => [k, health[k]]),
             ...Object.entries(health.arr ?? {})
         ];
         for (const [name, state] of components) {
@@ -160,12 +162,15 @@ export class SuggestarrAdapter implements ServiceAdapter, HealthCheckCapable, Hi
         return out;
     }
 
-    async readAutomationOverview(): Promise<AutomationOverview> {
+    async readAutomationOverview(want: number): Promise<AutomationOverview> {
         const [jobs, runs, counts] = await Promise.all([this.#jobs(), this.#runs(), this.#http.get<{ data?: RawCounts }>('/api/v1/requests/stats')]);
         const c = counts.data;
+        const all = jobs.items.map(j => this.#jobOf(j, (runs.data ?? []).find(r => r.job_id === j.id)));
+        const on = all.filter(j => j.enabled);
         return {
             service: this.id,
-            jobs: jobs.items.map(j => this.#jobOf(j, (runs.data ?? []).find(r => r.job_id === j.id))),
+            jobs: { items: [...on, ...all.filter(j => !j.enabled)].slice(0, Math.max(0, want)), total: all.length },
+            enabled: { count: on.length, lastRunFailed: on.filter(j => j.lastRun?.status === 'failed').length },
             ...(c === undefined
                 ? {}
                 : { requests: { today: c.today ?? 0, thisWeek: c.this_week ?? 0, thisMonth: c.this_month ?? 0, total: c.total ?? 0 } })
@@ -188,24 +193,49 @@ export class SuggestarrAdapter implements ServiceAdapter, HealthCheckCapable, Hi
         if (opts.eventType !== undefined && opts.eventType !== 'requested') return { items: [], total: 0 };
         const since = opts.since === undefined ? undefined : Date.parse(opts.since);
         const fence = fencer(this.id);
-        const items = (await this.#requests()).items
-            .map((r, i): HistoryEntry => {
-                const origin = originOf(r.source_media_id);
-                const tmdb = Number(r.tmdb_id);
-                return {
-                    service: this.id,
-                    id: `${r.media_type ?? ''}:${r.tmdb_id ?? i}`,
-                    at: isoInstant(r.requested_at ?? undefined) ?? '',
-                    event: 'requested',
-                    rawEvent: 'request',
-                    title: fence(r.title ?? '', 'title'),
-                    ...(Number.isInteger(tmdb) && kindOf(r.media_type) !== undefined ? { externalIds: { tmdb } } : {}),
-                    reason: `${REASON_TEXT[origin.reason]}${origin.sourceTmdbId === undefined ? '' : ` (TMDB ${origin.sourceTmdbId})`}`
-                };
-            })
-            .filter(e => since === undefined || Date.parse(e.at) >= since)
-            .sort(newestFirst);
-        return { items, total: items.length };
+        const items: HistoryEntry[] = [];
+        // Rows come newest first, so a `since` is crossed once and a `want` is met early: stop there.
+        let crossed = false;
+        let listed: number | undefined;
+        let complete = false;
+        for (let page = 1; page <= MAX_PAGES; page += 1) {
+            const body = await this.#http.get<Page<RawRequest>>(`/api/v1/requests?sort=date_desc&page=${page}&per_page=${PAGE_SIZE}`);
+            listed = body.meta?.total ?? listed;
+            const rows = body.data ?? [];
+            for (const [i, r] of rows.entries()) {
+                const entry = this.#historyOf(r, (page - 1) * PAGE_SIZE + i, fence);
+                const at = Date.parse(entry.at);
+                if (since !== undefined && Number.isFinite(at) && at < since) {
+                    crossed = true;
+                    break;
+                }
+                if (since === undefined || at >= since) items.push(entry);
+            }
+            complete = page >= (body.meta?.pages ?? 1) || rows.length === 0;
+            if (crossed || complete || (opts.want !== undefined && items.length >= opts.want)) break;
+            if (page === MAX_PAGES) logger.warn({ service: this.id, read: items.length }, 'request history over the page cap; the rest is not read');
+        }
+        items.sort(newestFirst);
+        // Without a `since` the API's own count is exact. With one, a read that stopped
+        // before crossing it only knows the list's length: a ceiling, flagged as such.
+        if (since === undefined) return { items, total: complete ? items.length : (listed ?? items.length) };
+        if (crossed || complete) return { items, total: items.length };
+        return { items, total: Math.max(listed ?? items.length, items.length), atMost: true };
+    }
+
+    #historyOf(r: RawRequest, index: number, fence: ReturnType<typeof fencer>): HistoryEntry {
+        const origin = originOf(r.source_media_id);
+        const tmdb = Number(r.tmdb_id);
+        return {
+            service: this.id,
+            id: `${r.media_type ?? ''}:${r.tmdb_id ?? index}`,
+            at: isoInstant(r.requested_at ?? undefined) ?? '',
+            event: 'requested',
+            rawEvent: 'request',
+            title: fence(r.title ?? '', 'title'),
+            ...(Number.isInteger(tmdb) && kindOf(r.media_type) !== undefined ? { externalIds: { tmdb } } : {}),
+            reason: `${REASON_TEXT[origin.reason]}${origin.sourceTmdbId === undefined ? '' : ` (TMDB ${origin.sourceTmdbId})`}`
+        };
     }
 
     #jobOf(j: RawJob, last: RawRun | undefined): AutomationJob {
